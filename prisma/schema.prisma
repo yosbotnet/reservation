@@ -1,0 +1,226 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Persona {
+  CF        String    @id @db.VarChar(16)
+  nome      String    @db.VarChar(50)
+  cognome   String    @db.VarChar(50)
+  email     String    @unique @db.VarChar(100)
+  telefono  String?   @db.VarChar(20)
+  paziente  Paziente?
+  personale Personale?
+}
+
+model Paziente {
+  CF                String              @id @db.VarChar(16)
+  gruppo_sanguigno  String?             @db.VarChar(3)
+  allergie          String?             @db.Text
+  patologie_croniche String?            @db.Text
+  persona           Persona             @relation(fields: [CF], references: [CF])
+  polizze           Polizza_Assicurativa[]
+  cartelle          Cartella_Clinica[]
+  interventi        Intervento[]
+}
+
+model Personale {
+  CF              String      @id @db.VarChar(16)
+  data_assunzione DateTime    @db.Date
+  qualifica       String      @db.VarChar(50)
+  livello_accesso String      @db.VarChar(20)
+  persona         Persona     @relation(fields: [CF], references: [CF])
+  medico          Medico?
+  infermiere      Infermiere?
+}
+
+model Medico {
+  CF              String      @id @db.VarChar(16)
+  num_albo        String      @unique @db.VarChar(20)
+  specializzazione String     @db.VarChar(100)
+  personale       Personale   @relation(fields: [CF], references: [CF])
+  disponibilita   Calendario_Disponibilita[]
+  interventi      Medici_Intervento[]
+  curaPostOperativa Cura_Post_Operativa[]
+}
+
+model Infermiere {
+  CF              String      @id @db.VarChar(16)
+  reparto         String      @db.VarChar(50)
+  personale       Personale   @relation(fields: [CF], references: [CF])
+  turni           Turni_Infermiere[]
+}
+
+model Compagnia {
+  id_compagnia    Int         @id @default(autoincrement())
+  nome            String      @unique @db.VarChar(100)
+  indirizzo       String?     @db.Text
+  telefono        String?     @db.VarChar(20)
+  polizze         Polizza_Assicurativa[]
+}
+
+model Polizza_Assicurativa {
+  numero          String      @id @db.VarChar(50)
+  id_compagnia    Int
+  CF_paziente     String      @db.VarChar(16)
+  data_scadenza   DateTime    @db.Date
+  massimale       Decimal?    @db.Decimal(10, 2)
+  compagnia       Compagnia   @relation(fields: [id_compagnia], references: [id_compagnia])
+  paziente        Paziente    @relation(fields: [CF_paziente], references: [CF])
+}
+
+model Cartella_Clinica {
+  id              String      @id @db.VarChar(20)
+  CF_paziente     String      @db.VarChar(16)
+  data_apertura   DateTime    @db.Date
+  data_chiusura   DateTime?   @db.Date
+  diagnosi        String?     @db.Text
+  paziente        Paziente    @relation(fields: [CF_paziente], references: [CF])
+  esami           Esame_Pre_Operatorio[]
+  visite          Visita_Controllo[]
+}
+
+model Tipo_Intervento {
+  codice          String      @id @db.VarChar(20)
+  nome            String      @db.VarChar(100)
+  descrizione     String?     @db.Text
+  complessita     Int         @db.Int
+  durata_standard Int         @db.Int
+  interventi      Intervento[]
+}
+
+model Sala_Operatoria {
+  numero          String      @id @db.VarChar(10)
+  piano           Int         @db.Int
+  tipo_sala       String      @db.VarChar(50)
+  attrezzature    Attrezzatura[]
+  interventi      Intervento[]
+}
+
+model Attrezzatura {
+  codice              String      @id @db.VarChar(20)
+  nome                String      @db.VarChar(100)
+  numero_sala         String      @db.VarChar(10)
+  stato               String      @db.VarChar(20)
+  ultima_manutenzione DateTime?   @db.Date
+  prossima_manutenzione DateTime? @db.Date
+  sala                Sala_Operatoria @relation(fields: [numero_sala], references: [numero])
+}
+
+model Intervento {
+  id              String      @id @db.VarChar(20)
+  CF_paziente     String      @db.VarChar(16)
+  codice_tipo     String      @db.VarChar(20)
+  numero_sala     String      @db.VarChar(10)
+  data_ora        DateTime    @db.Timestamp
+  durata_prevista Int         @db.Int
+  stato           String      @db.VarChar(20)
+  paziente        Paziente    @relation(fields: [CF_paziente], references: [CF])
+  tipo            Tipo_Intervento @relation(fields: [codice_tipo], references: [codice])
+  sala            Sala_Operatoria @relation(fields: [numero_sala], references: [numero])
+  medici          Medici_Intervento[]
+  farmaci         Farmaci_Intervento[]
+  curaPostOperativa Cura_Post_Operativa[]
+}
+
+model Medici_Intervento {
+  id_intervento   String      @db.VarChar(20)
+  CF_medico       String      @db.VarChar(16)
+  ruolo           String      @db.VarChar(50)
+  intervento      Intervento  @relation(fields: [id_intervento], references: [id])
+  medico          Medico      @relation(fields: [CF_medico], references: [CF])
+  
+  @@id([id_intervento, CF_medico])
+}
+
+model Farmaco {
+  codice              String      @id @db.VarChar(20)
+  nome                String      @db.VarChar(100)
+  dosaggio            String?     @db.VarChar(50)
+  via_somministrazione String?    @db.VarChar(50)
+  interventi          Farmaci_Intervento[]
+}
+
+model Farmaci_Intervento {
+  id_intervento   String      @db.VarChar(20)
+  codice_farmaco  String      @db.VarChar(20)
+  quantita        Int         @db.Int
+  intervento      Intervento  @relation(fields: [id_intervento], references: [id])
+  farmaco         Farmaco     @relation(fields: [codice_farmaco], references: [codice])
+  
+  @@id([id_intervento, codice_farmaco])
+}
+
+model Protocollo_Post_Operatorio {
+  codice          String      @id @db.VarChar(20)
+  descrizione     String      @db.Text
+  durata_giorni   Int         @db.Int
+  istruzioni      String      @db.Text
+}
+
+model Esame_Pre_Operatorio {
+  id              String      @id @db.VarChar(20)
+  id_cartella     String      @db.VarChar(20)
+  tipo            String      @db.VarChar(50)
+  data            DateTime    @db.Date
+  risultato       String?     @db.Text
+  validita_giorni Int         @db.Int
+  cartella        Cartella_Clinica @relation(fields: [id_cartella], references: [id])
+}
+
+model Visita_Controllo {
+  id              String      @id @db.VarChar(20)
+  id_cartella     String      @db.VarChar(20)
+  data_ora        DateTime    @db.Timestamp
+  tipo            String      @db.VarChar(50)
+  esito           String?     @db.Text
+  cartella        Cartella_Clinica @relation(fields: [id_cartella], references: [id])
+}
+
+model Turno {
+  id              String      @id @db.VarChar(20)
+  data            DateTime    @db.Date
+  ora_inizio      DateTime    @db.Time
+  ora_fine        DateTime    @db.Time
+  tipo_turno      String      @db.VarChar(20)
+  infermieri      Turni_Infermiere[]
+}
+
+model Turni_Infermiere {
+  id_turno        String      @db.VarChar(20)
+  CF_infermiere   String      @db.VarChar(16)
+  turno           Turno       @relation(fields: [id_turno], references: [id])
+  infermiere      Infermiere  @relation(fields: [CF_infermiere], references: [CF])
+  
+  @@id([id_turno, CF_infermiere])
+}
+
+model Calendario_Disponibilita {
+  id              String      @id @db.VarChar(20)
+  CF_medico       String      @db.VarChar(16)
+  data            DateTime    @db.Date
+  ora_inizio      DateTime    @db.Time
+  ora_fine        DateTime    @db.Time
+  medico          Medico      @relation(fields: [CF_medico], references: [CF])
+}
+
+model Cura_Post_Operativa {
+  id              String      @id @db.VarChar(20)
+  id_intervento   String      @db.VarChar(20)
+  CF_medico       String      @db.VarChar(16)
+  data            DateTime    @db.Timestamp
+  note            String      @db.Text
+  parametri_vitali String     @db.Text
+  medicazioni     String?     @db.Text
+  terapia         String?     @db.Text
+  complicanze     String?     @db.Text
+  intervento      Intervento  @relation(fields: [id_intervento], references: [id])
+  medico          Medico      @relation(fields: [CF_medico], references: [CF])
+  
+  @@index([id_intervento])
+  @@index([CF_medico])
+}

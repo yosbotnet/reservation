@@ -1,0 +1,55 @@
+Project Overview:
+This is a hospital management system designed to handle:
+- Patient registration and medical records
+- Doctor scheduling and availability
+- Surgery scheduling and tracking
+- Post-operative care management
+- Nursing staff coordination
+- Administrative functions and reporting
+
+The system is being developed using:
+- Node.js with Express for the backend
+- Prisma ORM for database management
+- MySQL as the database
+- TypeScript for type safety
+- REST API architecture
+
+Current Project State:
+- Database connection established with MySQL
+- Prisma schema generated from existing database
+- Basic API endpoints implemented:
+  * Patient management
+  * Doctor management
+  * Doctor availability
+  * Surgery scheduling
+  * Post-operative care tracking
+- TypeScript configured
+- Express server running on port 3000
+
+Post-operative Care Tracking Implementation Details:
+- Added Cura_Post_Operativa model to Prisma schema
+- Implemented endpoints:
+  * POST /api/post-op-care - Create new post-op care record
+  * GET /api/post-op-care/:interventionId - Get post-op records for intervention
+- Records include:
+  * Vital parameters (blood pressure, heart rate, etc.)
+  * Medical notes
+  * Medications administered
+  * Complications observed
+  * Therapy details
+
+Next Steps to Complete:
+1. Add nursing staff management endpoints
+2. Create administrative area endpoints:
+   - User permissions management
+   - Operating room configuration
+   - Surgery/test catalog management
+   - Statistical reports generation
+   - Equipment inventory management
+3. Implement frontend interfaces for:
+   - Public area
+   - Doctor area
+   - Nurse area
+   - Admin area
+4. Add authentication and authorization
+5. Implement data validation and error handling
