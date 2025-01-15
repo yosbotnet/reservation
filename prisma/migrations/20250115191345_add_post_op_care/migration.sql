@@ -218,7 +218,7 @@ CREATE TABLE `Calendario_Disponibilita` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `Cura_Post_Operativa` (
+CREATE TABLE `cura_post_operativa` (
     `id` VARCHAR(20) NOT NULL,
     `id_intervento` VARCHAR(20) NOT NULL,
     `CF_medico` VARCHAR(16) NOT NULL,
@@ -229,8 +229,8 @@ CREATE TABLE `Cura_Post_Operativa` (
     `terapia` TEXT NULL,
     `complicanze` TEXT NULL,
 
-    INDEX `Cura_Post_Operativa_id_intervento_idx`(`id_intervento`),
-    INDEX `Cura_Post_Operativa_CF_medico_idx`(`CF_medico`),
+    INDEX `cura_post_operativa_id_intervento_idx`(`id_intervento`),
+    INDEX `cura_post_operativa_CF_medico_idx`(`CF_medico`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -295,7 +295,7 @@ ALTER TABLE `Turni_Infermiere` ADD CONSTRAINT `Turni_Infermiere_CF_infermiere_fk
 ALTER TABLE `Calendario_Disponibilita` ADD CONSTRAINT `Calendario_Disponibilita_CF_medico_fkey` FOREIGN KEY (`CF_medico`) REFERENCES `Medico`(`CF`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Cura_Post_Operativa` ADD CONSTRAINT `Cura_Post_Operativa_id_intervento_fkey` FOREIGN KEY (`id_intervento`) REFERENCES `Intervento`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `cura_post_operativa` ADD CONSTRAINT `cura_post_operativa_id_intervento_fkey` FOREIGN KEY (`id_intervento`) REFERENCES `Intervento`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Cura_Post_Operativa` ADD CONSTRAINT `Cura_Post_Operativa_CF_medico_fkey` FOREIGN KEY (`CF_medico`) REFERENCES `Medico`(`CF`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `cura_post_operativa` ADD CONSTRAINT `cura_post_operativa_CF_medico_fkey` FOREIGN KEY (`CF_medico`) REFERENCES `Medico`(`CF`) ON DELETE RESTRICT ON UPDATE CASCADE;

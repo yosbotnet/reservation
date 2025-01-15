@@ -26,8 +26,19 @@ Current Project State:
 - TypeScript configured
 - Express server running on port 3000
 
+Nursing Staff Management Implementation Details:
+- Added Turno, Turni_Infermiere models to Prisma schema
+- Implemented endpoints:
+  * POST /api/shifts - Create new shifts
+  * POST /api/shifts/:shiftId/assign - Assign nurses to shifts
+  * GET /api/nurses/:cf/shifts - Get shifts for a specific nurse
+  * GET /api/shifts - Get all shifts
+  * GET /api/nurses/:cf/patients - Get assigned patients
+  * POST /api/interventions/:id/drugs - Administer drugs
+  * GET /api/interventions/:id/drugs - Get administered drugs
+
 Post-operative Care Tracking Implementation Details:
-- Added Cura_Post_Operativa model to Prisma schema
+- Added cura_post_operativa model to Prisma schema
 - Implemented endpoints:
   * POST /api/post-op-care - Create new post-op care record
   * GET /api/post-op-care/:interventionId - Get post-op records for intervention
