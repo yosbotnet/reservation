@@ -152,7 +152,6 @@ model paziente {
   gruppo_sanguigno     String?                @db.VarChar(3)
   allergie             String?                @db.Text
   patologie_croniche   String?                @db.Text
-  password             String?                @db.VarChar(100)
   cartella_clinica     cartella_clinica[]
   intervento           intervento[]
   persona              persona                @relation(fields: [CF], references: [CF], map: "Paziente_CF_fkey")
@@ -165,6 +164,7 @@ model persona {
   cognome   String     @db.VarChar(50)
   email     String     @unique(map: "Persona_email_key") @db.VarChar(100)
   telefono  String?    @db.VarChar(20)
+  password  String?    @db.VarChar(100)
   paziente  paziente?
   personale personale?
 }

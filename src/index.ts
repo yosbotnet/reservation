@@ -1,4 +1,3 @@
-// Export services
 export { patientService } from './services/patient';
 export { doctorService } from './services/doctor';
 export { surgeryService } from './services/surgery';

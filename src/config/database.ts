@@ -52,7 +52,8 @@ class Database {
 
   public getClient(): PrismaClient {
     if (!this.isConnected) {
-      throw new DatabaseError('Database is not connected');
+      this.connect();
+      //throw new DatabaseError('Database is not connected');
     }
     return this.prisma;
   }

@@ -35,7 +35,6 @@ export class PatientService {
             gruppo_sanguigno: data.gruppo_sanguigno,
             allergie: data.allergie,
             patologie_croniche: data.patologie_croniche,
-            password: data.password
           },
           include: {
             persona: true,
@@ -119,7 +118,6 @@ export class PatientService {
             gruppo_sanguigno: data.gruppo_sanguigno,
             allergie: data.allergie,
             patologie_croniche: data.patologie_croniche,
-            password: data.password
           },
           include: {
             persona: true,

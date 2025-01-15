@@ -3,7 +3,17 @@ import cors from 'cors';
 import config from './config/server';
 import { db } from './config/database';
 import { AppError } from './utils/errors';
-
+// Database connection
+const connectDB = async () => {
+  try {
+    await db.connect();
+  } catch (error) {
+    console.error('Failed to connect to database:', error);
+    process.exit(1);
+  }
+};
+// Connect to database on startup
+connectDB();
 // Import routes
 const patientRoutes = require('./routes/patient').default;
 const doctorRoutes = require('./routes/doctor').default;
@@ -81,16 +91,7 @@ const notFoundHandler = (req: Request, res: Response) => {
 app.use('*', notFoundHandler);
 app.use(errorHandler);
 
-// Database connection
-const connectDB = async () => {
-  try {
-    await db.connect();
-    console.log('Successfully connected to database');
-  } catch (error) {
-    console.error('Failed to connect to database:', error);
-    process.exit(1);
-  }
-};
+
 
 // Graceful shutdown
 const gracefulShutdown = async () => {
@@ -109,7 +110,6 @@ const gracefulShutdown = async () => {
 process.on('SIGTERM', gracefulShutdown);
 process.on('SIGINT', gracefulShutdown);
 
-// Connect to database on startup
-connectDB();
+
 
 export default app;
