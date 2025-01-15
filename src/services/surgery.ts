@@ -2,7 +2,6 @@ import { PrismaClient } from '@prisma/client';
 import { db } from '../config/database';
 import { NotFoundError, DatabaseError, ConflictError } from '../utils/errors';
 import {
-  Surgery,
   CreateSurgeryRequest,
   UpdateSurgeryRequest,
   SurgeryResponse,

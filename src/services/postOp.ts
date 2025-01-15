@@ -2,7 +2,6 @@ import { PrismaClient } from '@prisma/client';
 import { db } from '../config/database';
 import { NotFoundError, DatabaseError } from '../utils/errors';
 import {
-  PostOpCareBase,
   CreatePostOpCareRequest,
   UpdatePostOpCareRequest,
   PostOpCareResponse,

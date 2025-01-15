@@ -2,7 +2,6 @@ import { PrismaClient } from '@prisma/client';
 import { db } from '../config/database';
 import { NotFoundError, DatabaseError, ConflictError } from '../utils/errors';
 import {
-  NurseBase,
   CreateNurseRequest,
   UpdateNurseRequest,
   NurseResponse,
@@ -23,7 +22,7 @@ export class NursingService {
     try {
       const nurse = await db.transaction(async (prisma) => {
         // Create Persona first
-        const persona = await prisma.persona.create({
+        await prisma.persona.create({
           data: {
             CF: data.CF,
             nome: data.nome,
@@ -34,7 +33,7 @@ export class NursingService {
         });
 
         // Create Personale
-        const personale = await prisma.personale.create({
+        await prisma.personale.create({
           data: {
             CF: data.CF,
             data_assunzione: data.data_assunzione,
@@ -346,7 +345,7 @@ export class NursingService {
             in: ['in_progress', 'completed']
           }
         },
-        distinct: ['CF_paziente']
+        distinct: ['CF_paziente'] as never
       });
 
       return {

@@ -45,7 +45,7 @@ router.post('/',
   })
 );
 
-router.get('/', asyncHandler(async (req, res) => {
+router.get('/', asyncHandler(async (_, res) => {
   const doctors = await doctorService.getAllDoctors();
   res.json(doctors);
 }));

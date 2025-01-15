@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient} from '@prisma/client';
 import { DatabaseError } from '../utils/errors';
 
 class Database {
@@ -58,7 +58,7 @@ class Database {
   }
 
   public async transaction<T>(
-    fn: (prisma: PrismaClient) => Promise<T>
+    fn: (prisma: Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'>) => Promise<T>
   ): Promise<T> {
     try {
       return await this.prisma.$transaction(fn);

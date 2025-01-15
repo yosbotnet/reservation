@@ -89,8 +89,6 @@ router.post('/shifts/:shiftId/assign',
 );
 
 router.get('/shifts', asyncHandler(async (req, res) => {
-  const startDate = req.query.startDate as string | undefined;
-  const endDate = req.query.endDate as string | undefined;
   const shifts = await nursingService.getNurseById(req.params.cf);
   res.json(shifts);
 }));

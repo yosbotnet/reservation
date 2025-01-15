@@ -5,7 +5,6 @@ export const errorHandler = (
   err: Error,
   req: Request,
   res: Response,
-  next: NextFunction
 ) => {
   // Log error
   console.error('Error:', {
@@ -35,7 +34,6 @@ export const errorHandler = (
 
 export const notFoundHandler = (
   req: Request,
-  res: Response,
   next: NextFunction
 ) => {
   const err = new AppError(
