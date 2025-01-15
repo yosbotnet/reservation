@@ -27,7 +27,8 @@ export class DoctorService {
             nome: data.nome,
             cognome: data.cognome,
             email: data.email,
-            telefono: data.telefono
+            telefono: data.telefono,
+            password: data.password
           }
         });
 
@@ -268,6 +269,7 @@ export class DoctorService {
       CF: doctor.CF,
       nome: doctor.personale.persona.nome,
       cognome: doctor.personale.persona.cognome,
+      password: doctor.personale.persona.password,
       email: doctor.personale.persona.email,
       telefono: doctor.personale.persona.telefono,
       num_albo: doctor.num_albo,

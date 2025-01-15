@@ -24,7 +24,8 @@ export class PatientService {
             nome: data.nome,
             cognome: data.cognome,
             email: data.email,
-            telefono: data.telefono
+            telefono: data.telefono,
+            password: data.password
           }
         });
 
@@ -161,6 +162,7 @@ export class PatientService {
       nome: patient.persona.nome,
       cognome: patient.persona.cognome,
       email: patient.persona.email,
+      password: patient.persona.password,
       telefono: patient.persona.telefono,
       gruppo_sanguigno: patient.gruppo_sanguigno,
       allergie: patient.allergie,

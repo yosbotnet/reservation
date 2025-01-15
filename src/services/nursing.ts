@@ -28,7 +28,8 @@ export class NursingService {
             nome: data.nome,
             cognome: data.cognome,
             email: data.email,
-            telefono: data.telefono
+            telefono: data.telefono,
+            password: data.password
           }
         });
 
@@ -373,6 +374,7 @@ export class NursingService {
       email: nurse.personale.persona.email,
       telefono: nurse.personale.persona.telefono,
       reparto: nurse.reparto,
+      password: nurse.personale.persona.password,
       data_assunzione: nurse.personale.data_assunzione,
       qualifica: nurse.personale.qualifica,
       livello_accesso: nurse.personale.livello_accesso,

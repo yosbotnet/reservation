@@ -12,6 +12,7 @@ const createNurseSchema = {
   nome: [required('nome'), isString('nome')],
   cognome: [required('cognome'), isString('cognome')],
   email: [required('email'), isEmail('email')],
+  password: [required('password'), isString('password')],
   telefono: [isString('telefono')],
   reparto: [required('reparto'), isString('reparto')],
   data_assunzione: [required('data_assunzione'), isDate('data_assunzione')],

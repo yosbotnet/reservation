@@ -4,6 +4,7 @@ export interface PersonBase {
   cognome: string;
   email: string;
   telefono?: string;
+  password: string;
 }
 
 export interface PatientBase extends PersonBase {
@@ -34,7 +35,6 @@ export interface PatientWithDetails extends PatientBase {
 }
 
 export interface CreatePatientRequest extends PatientBase {
-  password?: string;
 }
 
 export interface UpdatePatientRequest extends Partial<PatientBase> {

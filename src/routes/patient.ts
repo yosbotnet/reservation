@@ -12,6 +12,7 @@ const createPatientSchema = {
   nome: [required('nome'), isString('nome')],
   cognome: [required('cognome'), isString('cognome')],
   email: [required('email'), isEmail('email')],
+  password: [required('password'), isString('password')],
   telefono: [isString('telefono')],
   gruppo_sanguigno: [isString('gruppo_sanguigno')],
   allergie: [isString('allergie')],

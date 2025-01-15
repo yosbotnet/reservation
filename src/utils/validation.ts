@@ -14,7 +14,10 @@ export const isString = (fieldName: string): ValidationRule<any> => ({
   validate: (value: any) => typeof value === 'string',
   message: `${fieldName} must be a string`,
 });
-
+export const isCodiceFiscale = (fieldName: string): ValidationRule<any> => ({
+  validate: (x) => x.length === 16,
+  message: `${fieldName} must be a valid codice fiscale`,
+});
 export const isNumber = (fieldName: string): ValidationRule<any> => ({
   validate: (value: any) => typeof value === 'number' && !isNaN(value),
   message: `${fieldName} must be a number`,

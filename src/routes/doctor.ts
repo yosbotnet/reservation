@@ -12,6 +12,7 @@ const createDoctorSchema = {
   nome: [required('nome'), isString('nome')],
   cognome: [required('cognome'), isString('cognome')],
   email: [required('email'), isEmail('email')],
+  password: [required('password'), isString('password')],
   telefono: [isString('telefono')],
   num_albo: [required('num_albo'), isString('num_albo')],
   specializzazione: [required('specializzazione'), isString('specializzazione')],
