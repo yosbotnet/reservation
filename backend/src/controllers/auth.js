@@ -53,8 +53,15 @@ export const register = async (req, res, next) => {
             email,
             telefono,
             gruppoSanguigno,
-            allergie,
           },
+        });
+        await prisma.pAZIENTE_ALLERGIA.createMany({
+            data: allergie.map((allergiaId) => ({
+                allergiaId,
+                pazienteId: codiceFiscale,
+                gravita,
+                note
+            }),
         });
       } else if (ruolo === 'DOTTORE') {
         await prisma.dOTTORE.create({
