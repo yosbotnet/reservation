@@ -3,7 +3,9 @@ import {
   getDoctors,
   getDoctorAvailability,
   bookAppointment,
-  getPatientAppointments
+  getPatientAppointments,
+  getAllergiesById,
+  getAllergies
 } from '../controllers/public.js';
 import {
   availabilityValidation,
@@ -36,5 +38,7 @@ router.get(
   patientAppointmentsValidation,
   getPatientAppointments
 );
+router.get('/allergies', getAllergies);
+router.get('/allergies/:patientId', getAllergiesById);
 
 export default router;

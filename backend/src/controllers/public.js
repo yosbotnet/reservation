@@ -16,7 +16,40 @@ export const getDoctors = async (req, res, next) => {
     next(error);
   }
 };
+export const getAllergiesById = async (req, res, next) => {
+    const { patientId } = req.params;
+    try {
+        
+        const allergie = await prisma.pAZIENTE_ALLERGIA.findMany({
+            where: {
+                pazienteId: patientId
+            },
+            include: {
+                ALLERGIA: true
+            }
+        })
+    } catch (error) {
+        next(error);
+        
+    }
+};
+export const getAllergies = async (req, res, next) => {
+    try{
+        const allergie = await prisma.aLLERGIA.findMany({
+            select:{
+                nome:true,
+                id:false,
+            }
+        });
 
+        res.json(allergie);
+        return;
+    } catch (error) 
+    {
+        next(error);
+    }
+
+};
 export const getDoctorAvailability = async (req, res, next) => {
   const { doctorId } = req.params;
   const { startDate, endDate } = req.query;

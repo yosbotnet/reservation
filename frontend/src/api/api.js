@@ -27,6 +27,16 @@ export const api = {
       if (!response.ok) throw new Error('Failed to fetch doctors');
       return response.json();
     },
+    getAllergies: async () => {
+      const response = await fetch(`${API_URL}/api/public/allergies`);
+      if (!response.ok) throw new Error('Failed to fetch allergies');
+      return response.json();
+    },
+    getAllergiesById: async (id) => {
+      const response = await fetch(`${API_URL}/api/public/allergies/${id}`);
+      if (!response.ok) throw new Error('Failed to fetch allergies');
+      return response.json();
+    },
     getAvailableSlots: async (doctorId) => {
       const response = await fetch(`${API_URL}/api/public/slots/${doctorId}`);
       if (!response.ok) throw new Error('Failed to fetch slots');

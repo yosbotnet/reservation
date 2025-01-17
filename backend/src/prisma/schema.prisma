@@ -103,16 +103,16 @@ model INTERVENTO {
 }
 
 model PAZIENTE {
-  codiceFiscale   String                    @id @db.VarChar(16)
-  nome            String                    @db.VarChar(50)
-  cognome         String                    @db.VarChar(50)
-  dataNascita     DateTime                  @db.Date
-  email           String                    @unique(map: "email") @db.VarChar(100)
-  telefono        String                    @db.VarChar(20)
-  gruppoSanguigno PAZIENTE_gruppoSanguigno?
-  allergie        String?                   @db.Text
-  INTERVENTO      INTERVENTO[]
-  VISITA          VISITA[]
+  codiceFiscale     String                    @id @db.VarChar(16)
+  nome              String                    @db.VarChar(50)
+  cognome           String                    @db.VarChar(50)
+  dataNascita       DateTime                  @db.Date
+  email             String                    @unique(map: "email") @db.VarChar(100)
+  telefono          String                    @db.VarChar(20)
+  gruppoSanguigno   PAZIENTE_gruppoSanguigno?
+  INTERVENTO        INTERVENTO[]
+  PAZIENTE_ALLERGIA PAZIENTE_ALLERGIA[]
+  VISITA            VISITA[]
 }
 
 model SALA_OPERATORIA {
@@ -173,6 +173,24 @@ model VISITA {
   @@index([slotId], map: "slotId")
 }
 
+model ALLERGIA {
+  id                Int                 @id @default(autoincrement())
+  nome              String              @unique(map: "nome") @db.VarChar(100)
+  PAZIENTE_ALLERGIA PAZIENTE_ALLERGIA[]
+}
+
+model PAZIENTE_ALLERGIA {
+  pazienteId String                     @db.VarChar(16)
+  allergiaId Int
+  gravita    PAZIENTE_ALLERGIA_gravita?
+  note       String?                    @db.Text
+  PAZIENTE   PAZIENTE                   @relation(fields: [pazienteId], references: [codiceFiscale], onUpdate: Restrict, map: "paziente_allergia_ibfk_1")
+  ALLERGIA   ALLERGIA                   @relation(fields: [allergiaId], references: [id], onUpdate: Restrict, map: "paziente_allergia_ibfk_2")
+
+  @@id([pazienteId, allergiaId])
+  @@index([allergiaId], map: "allergiaId")
+}
+
 enum ATTREZZATURA_stato {
   DISPONIBILE
   IN_USO
@@ -215,12 +233,18 @@ enum INTERVENTO_stato {
 }
 
 enum PAZIENTE_gruppoSanguigno {
-  A_    @map("A+")
+  A_         @map("A+")
   A_MINUS    @map("A-")
-  B_    @map("B+")
+  B_         @map("B+")
   B_MINUS    @map("B-")
-  AB_   @map("AB+")
+  AB_        @map("AB+")
   AB_MINUS   @map("AB-")
-  ZERO_ @map("ZERO+")
+  ZERO_      @map("ZERO+")
   ZERO_MINUS @map("ZERO-")
+}
+
+enum PAZIENTE_ALLERGIA_gravita {
+  BASSA
+  MEDIA
+  ALTA
 }
