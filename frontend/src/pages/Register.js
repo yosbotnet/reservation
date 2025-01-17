@@ -1,23 +1,52 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api/api';
+import { LoadingSpinner } from '../components/LoadingSpinner';
 
 export const Register = () => {
   const [formData, setFormData] = useState({
     name: '',
+    surname: '',
     fiscalCode: '',
     birthDate: '',
     email: '',
     phone: '',
     bloodType: '',
-    allergies: '',
     password: '',
     confirmPassword: ''
   });
+  const [allergies, setAllergies] = useState([]);
+  const [selectedAllergies, setSelectedAllergies] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const bloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+  const bloodTypes = [
+    { value: 'A_', label: 'A+' },
+    { value: 'A_MINUS', label: 'A-' },
+    { value: 'B_', label: 'B+' },
+    { value: 'B_MINUS', label: 'B-' },
+    { value: 'AB_', label: 'AB+' },
+    { value: 'AB_MINUS', label: 'AB-' },
+    { value: 'ZERO_', label: 'O+' },
+    { value: 'ZERO_MINUS', label: 'O-' }
+  ];
+  const severityLevels = ['BASSA', 'MEDIA', 'ALTA'];
+
+  useEffect(() => {
+    loadAllergies();
+  }, []);
+
+  const loadAllergies = async () => {
+    try {
+      const response = await api.public.getAllergies();
+      setAllergies(response);
+    } catch (err) {
+      setError('Failed to load allergies');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -29,7 +58,24 @@ export const Register = () => {
     }
 
     try {
-      await api.auth.register(formData);
+      const registrationData = {
+        nome: formData.name,
+        username: formData.email,
+        cognome: formData.surname,
+        codiceFiscale: formData.fiscalCode,
+        dataNascita: formData.birthDate,
+        email: formData.email,
+        telefono: formData.phone,
+        gruppoSanguigno: formData.bloodType,
+        password: formData.password,
+        ruolo: 'PAZIENTE',
+        allergies: selectedAllergies.map(allergy => ({
+          allergiaId: allergy.id,
+          gravita: allergy.severity,
+          note: allergy.notes
+        }))
+      };
+      await api.auth.register(registrationData);
       navigate('/login', { state: { message: 'Registration successful. Please login.' } });
     } catch (err) {
       setError('Registration failed. Please try again.');
@@ -39,6 +85,24 @@ export const Register = () => {
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
+
+  const handleAllergyAdd = () => {
+    setSelectedAllergies([...selectedAllergies, { id: '', severity: 'BASSA', notes: '' }]);
+  };
+
+  const handleAllergyRemove = (index) => {
+    setSelectedAllergies(selectedAllergies.filter((_, i) => i !== index));
+  };
+
+  const handleAllergyChange = (index, field, value) => {
+    const updatedAllergies = [...selectedAllergies];
+    updatedAllergies[index] = { ...updatedAllergies[index], [field]: value };
+    setSelectedAllergies(updatedAllergies);
+  };
+
+  if (loading) {
+    return <LoadingSpinner size="large" />;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -55,13 +119,25 @@ export const Register = () => {
           )}
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Full Name</label>
+            <label className="block text-sm font-medium text-gray-700">Name</label>
             <input
               type="text"
               name="name"
               required
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               value={formData.name}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Surname</label>
+            <input
+              type="text"
+              name="surname"
+              required
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              value={formData.surname}
               onChange={handleChange}
             />
           </div>
@@ -125,21 +201,67 @@ export const Register = () => {
             >
               <option value="">Select blood type</option>
               {bloodTypes.map(type => (
-                <option key={type} value={type}>{type}</option>
+                <option key={type.value} value={type.value}>{type.label}</option>
               ))}
             </select>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Allergies</label>
-            <textarea
-              name="allergies"
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              rows="3"
-              value={formData.allergies}
-              onChange={handleChange}
-              placeholder="List any allergies (if none, write 'None')"
-            />
+            <div className="flex justify-between items-center mb-2">
+              <label className="block text-sm font-medium text-gray-700">Allergies</label>
+              <button
+                type="button"
+                onClick={handleAllergyAdd}
+                className="text-sm bg-blue-50 text-blue-600 px-3 py-1 rounded-md hover:bg-blue-100"
+              >
+                Add Allergy
+              </button>
+            </div>
+            <div className="space-y-4">
+              {selectedAllergies.map((allergy, index) => (
+                <div key={index} className="p-4 border rounded-md">
+                  <div className="flex justify-between mb-2">
+                    <h4 className="text-sm font-medium">Allergy #{index + 1}</h4>
+                    <button
+                      type="button"
+                      onClick={() => handleAllergyRemove(index)}
+                      className="text-red-600 hover:text-red-800"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                  <div className="space-y-3">
+                    <select
+                      value={allergy.id}
+                      onChange={(e) => handleAllergyChange(index, 'id', e.target.value)}
+                      className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      required
+                    >
+                      <option value="">Select allergy</option>
+                      {allergies.map(a => (
+                        <option key={a.id} value={a.id}>{a.nome}</option>
+                      ))}
+                    </select>
+                    <select
+                      value={allergy.severity}
+                      onChange={(e) => handleAllergyChange(index, 'severity', e.target.value)}
+                      className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      required
+                    >
+                      {severityLevels.map(level => (
+                        <option key={level} value={level}>{level}</option>
+                      ))}
+                    </select>
+                    <textarea
+                      value={allergy.notes}
+                      onChange={(e) => handleAllergyChange(index, 'notes', e.target.value)}
+                      placeholder="Additional notes"
+                      className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
           <div>

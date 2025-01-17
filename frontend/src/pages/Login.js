@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { api } from '../api/api';
 
 export const Login = () => {
-  const [formData, setFormData] = useState({ email: '', password: '' });
+  const [formData, setFormData] = useState({ username: '', password: '' });
   const [error, setError] = useState('');
   const navigate = useNavigate();
   const { login } = useAuth();
@@ -55,12 +55,12 @@ export const Login = () => {
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
               <input
-                name="email"
+                name="username"
                 type="email"
                 required
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
                 placeholder="Email address"
-                value={formData.email}
+                value={formData.username}
                 onChange={handleChange}
               />
             </div>

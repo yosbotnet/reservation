@@ -41,7 +41,7 @@ export const registerValidation = [
     .withMessage('Invalid date format'),
   body('gruppoSanguigno')
     .if(body('ruolo').equals('PAZIENTE'))
-    .isIn(['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'ZERO+', 'ZERO-'])
+    .isIn(['A_', 'A_MINUS', 'B_', 'B_MINUS', 'AB_', 'AB_MINUS', 'ZERO_', 'ZERO_MINUS'])
     .withMessage('Invalid blood type'),
   // Conditional validation for DOTTORE role
   body('numeroRegistrazione')
