@@ -1,0 +1,226 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model ATTREZZATURA {
+  codiceInventario             String                         @id @db.VarChar(20)
+  nome                         String                         @db.VarChar(100)
+  stato                        ATTREZZATURA_stato?            @default(DISPONIBILE)
+  ultimaManutenzione           DateTime?                      @db.Date
+  ATTREZZATURA_TIPO_INTERVENTO ATTREZZATURA_TIPO_INTERVENTO[]
+}
+
+model ATTREZZATURA_TIPO_INTERVENTO {
+  tipoInterventoId Int
+  attrezzaturaId   String          @db.VarChar(20)
+  TIPO_INTERVENTO  TIPO_INTERVENTO @relation(fields: [tipoInterventoId], references: [id], onUpdate: Restrict, map: "attrezzatura_tipo_intervento_ibfk_1")
+  ATTREZZATURA     ATTREZZATURA    @relation(fields: [attrezzaturaId], references: [codiceInventario], onUpdate: Restrict, map: "attrezzatura_tipo_intervento_ibfk_2")
+
+  @@id([tipoInterventoId, attrezzaturaId])
+  @@index([attrezzaturaId], map: "attrezzaturaId")
+}
+
+model CURA_POST {
+  id           Int         @id @default(autoincrement())
+  interventoId Int?
+  farmaco      String      @db.VarChar(100)
+  dosaggio     String      @db.Text
+  istruzioni   String?     @db.Text
+  dataInizio   DateTime    @db.Date
+  dataFine     DateTime    @db.Date
+  INTERVENTO   INTERVENTO? @relation(fields: [interventoId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "cura_post_ibfk_1")
+
+  @@index([interventoId], map: "interventoId")
+}
+
+model DISPONIBILITA_SETTIMANALE {
+  id         Int                              @id @default(autoincrement())
+  dottoreId  String?                          @db.VarChar(10)
+  giorno     DISPONIBILITA_SETTIMANALE_giorno
+  oraInizio  DateTime                         @db.Time(0)
+  oraFine    DateTime                         @db.Time(0)
+  ricorrente Boolean?                         @default(true)
+  dataInizio DateTime?                        @db.Date
+  dataFine   DateTime?                        @db.Date
+  DOTTORE    DOTTORE?                         @relation(fields: [dottoreId], references: [numeroRegistrazione], onDelete: Cascade, onUpdate: Restrict, map: "disponibilita_settimanale_ibfk_1")
+
+  @@index([dottoreId, giorno], map: "idx_disponibilita_dottore")
+}
+
+model DOTTORE {
+  numeroRegistrazione       String                      @id @db.VarChar(10)
+  nome                      String                      @db.VarChar(50)
+  cognome                   String                      @db.VarChar(50)
+  specializzazioni          String                      @db.Text
+  DISPONIBILITA_SETTIMANALE DISPONIBILITA_SETTIMANALE[]
+  INDISPONIBILITA           INDISPONIBILITA[]
+  INTERVENTO                INTERVENTO[]
+  SLOT_DISPONIBILE          SLOT_DISPONIBILE[]
+  VISITA                    VISITA[]
+}
+
+model INDISPONIBILITA {
+  id         Int      @id @default(autoincrement())
+  dottoreId  String?  @db.VarChar(10)
+  dataInizio DateTime @db.DateTime(0)
+  dataFine   DateTime @db.DateTime(0)
+  motivo     String?  @db.VarChar(255)
+  approvata  Boolean? @default(false)
+  DOTTORE    DOTTORE? @relation(fields: [dottoreId], references: [numeroRegistrazione], onDelete: Cascade, onUpdate: Restrict, map: "indisponibilita_ibfk_1")
+
+  @@index([dottoreId], map: "dottoreId")
+}
+
+model INTERVENTO {
+  id               Int               @id @default(autoincrement())
+  pazienteId       String?           @db.VarChar(16)
+  dottoreId        String?           @db.VarChar(10)
+  tipoInterventoId Int?
+  salaOperatoriaId String?           @db.VarChar(10)
+  slotId           Int?
+  stato            INTERVENTO_stato? @default(PROGRAMMATO)
+  durataEffettiva  Int?
+  esito            String?           @db.Text
+  successo         Boolean?
+  note             String?           @db.Text
+  CURA_POST        CURA_POST[]
+  PAZIENTE         PAZIENTE?         @relation(fields: [pazienteId], references: [codiceFiscale], onDelete: Restrict, onUpdate: Restrict, map: "intervento_ibfk_1")
+  DOTTORE          DOTTORE?          @relation(fields: [dottoreId], references: [numeroRegistrazione], onDelete: Restrict, onUpdate: Restrict, map: "intervento_ibfk_2")
+  TIPO_INTERVENTO  TIPO_INTERVENTO?  @relation(fields: [tipoInterventoId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "intervento_ibfk_3")
+  SALA_OPERATORIA  SALA_OPERATORIA?  @relation(fields: [salaOperatoriaId], references: [codice], onDelete: Restrict, onUpdate: Restrict, map: "intervento_ibfk_4")
+  SLOT_DISPONIBILE SLOT_DISPONIBILE? @relation(fields: [slotId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "intervento_ibfk_5")
+
+  @@index([dottoreId], map: "dottoreId")
+  @@index([slotId], map: "idx_intervento_data")
+  @@index([pazienteId], map: "pazienteId")
+  @@index([salaOperatoriaId], map: "salaOperatoriaId")
+  @@index([tipoInterventoId], map: "tipoInterventoId")
+}
+
+model PAZIENTE {
+  codiceFiscale   String                    @id @db.VarChar(16)
+  nome            String                    @db.VarChar(50)
+  cognome         String                    @db.VarChar(50)
+  dataNascita     DateTime                  @db.Date
+  email           String                    @unique(map: "email") @db.VarChar(100)
+  telefono        String                    @db.VarChar(20)
+  gruppoSanguigno PAZIENTE_gruppoSanguigno?
+  allergie        String?                   @db.Text
+  INTERVENTO      INTERVENTO[]
+  VISITA          VISITA[]
+}
+
+model SALA_OPERATORIA {
+  codice            String       @id @db.VarChar(10)
+  nome              String       @db.VarChar(50)
+  attrezzatureFisse String?      @db.Text
+  disponibile       Boolean?     @default(true)
+  INTERVENTO        INTERVENTO[]
+}
+
+model SLOT_DISPONIBILE {
+  id            Int                   @id @default(autoincrement())
+  dottoreId     String?               @db.VarChar(10)
+  dataOraInizio DateTime              @db.DateTime(0)
+  dataOraFine   DateTime              @db.DateTime(0)
+  prenotabile   Boolean?              @default(true)
+  tipo          SLOT_DISPONIBILE_tipo
+  INTERVENTO    INTERVENTO[]
+  DOTTORE       DOTTORE?              @relation(fields: [dottoreId], references: [numeroRegistrazione], onDelete: Cascade, onUpdate: Restrict, map: "slot_disponibile_ibfk_1")
+  VISITA        VISITA[]
+
+  @@index([dottoreId], map: "dottoreId")
+  @@index([dataOraInizio], map: "idx_slot_data")
+}
+
+model TIPO_INTERVENTO {
+  id                           Int                            @id @default(autoincrement())
+  nome                         String                         @db.VarChar(100)
+  durataStimata                Int
+  descrizione                  String?                        @db.Text
+  complessita                  Float                          @db.Float
+  ATTREZZATURA_TIPO_INTERVENTO ATTREZZATURA_TIPO_INTERVENTO[]
+  INTERVENTO                   INTERVENTO[]
+}
+
+model UTENTE {
+  id            Int          @id @default(autoincrement())
+  username      String       @unique(map: "username") @db.VarChar(50)
+  password      String       @db.VarChar(255)
+  ruolo         UTENTE_ruolo
+  riferimentoId String?      @db.VarChar(16)
+}
+
+model VISITA {
+  id               Int               @id @default(autoincrement())
+  pazienteId       String?           @db.VarChar(16)
+  dottoreId        String?           @db.VarChar(10)
+  slotId           Int?
+  stato            VISITA_stato?     @default(RICHIESTA)
+  motivo           String?           @db.Text
+  diagnosi         String?           @db.Text
+  PAZIENTE         PAZIENTE?         @relation(fields: [pazienteId], references: [codiceFiscale], onDelete: Restrict, onUpdate: Restrict, map: "visita_ibfk_1")
+  DOTTORE          DOTTORE?          @relation(fields: [dottoreId], references: [numeroRegistrazione], onDelete: Restrict, onUpdate: Restrict, map: "visita_ibfk_2")
+  SLOT_DISPONIBILE SLOT_DISPONIBILE? @relation(fields: [slotId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "visita_ibfk_3")
+
+  @@index([dottoreId], map: "dottoreId")
+  @@index([pazienteId], map: "pazienteId")
+  @@index([slotId], map: "slotId")
+}
+
+enum ATTREZZATURA_stato {
+  DISPONIBILE
+  IN_USO
+  MANUTENZIONE
+}
+
+enum DISPONIBILITA_SETTIMANALE_giorno {
+  LUN
+  MAR
+  MER
+  GIO
+  VEN
+  SAB
+  DOM
+}
+
+enum UTENTE_ruolo {
+  ADMIN
+  DOTTORE
+  PAZIENTE
+}
+
+enum VISITA_stato {
+  RICHIESTA
+  CONFERMATA
+  COMPLETATA
+  CANCELLATA
+}
+
+enum SLOT_DISPONIBILE_tipo {
+  VISITA
+  INTERVENTO
+}
+
+enum INTERVENTO_stato {
+  PROGRAMMATO
+  IN_CORSO
+  COMPLETATO
+  CANCELLATO
+}
+
+enum PAZIENTE_gruppoSanguigno {
+  A_    @map("A+")
+  A_MINUS    @map("A-")
+  B_    @map("B+")
+  B_MINUS    @map("B-")
+  AB_   @map("AB+")
+  AB_MINUS   @map("AB-")
+  ZERO_ @map("ZERO+")
+  ZERO_MINUS @map("ZERO-")
+}
