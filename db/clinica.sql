@@ -18,8 +18,7 @@ CREATE TABLE PAZIENTE (
    dataNascita DATE NOT NULL,
    email VARCHAR(100) UNIQUE NOT NULL,
    telefono VARCHAR(20) NOT NULL,
-   gruppoSanguigno ENUM('A+','A-','B+','B-','AB+','AB-','0+','0-'),
-   allergie TEXT
+   gruppoSanguigno ENUM('A+','A-','B+','B-','AB+','AB-','ZERO+','ZERO-')
 );
 
 CREATE TABLE DOTTORE (
@@ -137,7 +136,20 @@ CREATE TABLE CURA_POST (
    FOREIGN KEY (interventoId) REFERENCES INTERVENTO(id) ON DELETE CASCADE,
    CHECK (dataInizio <= dataFine)
 );
+CREATE TABLE ALLERGIA (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    nome VARCHAR(100) NOT NULL UNIQUE
+);
 
+CREATE TABLE PAZIENTE_ALLERGIA (
+    pazienteId VARCHAR(16),
+    allergiaId INT,
+    gravita ENUM('BASSA', 'MEDIA', 'ALTA'),
+    note TEXT,
+    PRIMARY KEY (pazienteId, allergiaId),
+    FOREIGN KEY (pazienteId) REFERENCES PAZIENTE(codiceFiscale),
+    FOREIGN KEY (allergiaId) REFERENCES ALLERGIA(id)
+);
 -- Indici per ottimizzare le query più frequenti
 CREATE INDEX idx_slot_data ON SLOT_DISPONIBILE(dataOraInizio);
 CREATE INDEX idx_intervento_data ON INTERVENTO(slotId);
