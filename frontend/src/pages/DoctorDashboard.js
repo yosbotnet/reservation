@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { useAuth } from '../contexts/AuthContext';
 import { api } from '../api/api';
-
-const DAYS = ['lunedi', 'martedi', 'mercoledi', 'giovedi', 'venerdi', 'sabato', 'domenica'];
-const TIME_SLOTS = Array.from({ length: 24 }, (_, i) => `${i.toString().padStart(2, '0')}:00`);
+import FullCalendar from '@fullcalendar/react';
+import dayGridPlugin from '@fullcalendar/daygrid';
+import timeGridPlugin from '@fullcalendar/timegrid';
+import interactionPlugin from '@fullcalendar/interaction';
 
 export const DoctorDashboard = () => {
   const [activeTab, setActiveTab] = useState('schedule');
@@ -24,8 +25,6 @@ export const DoctorDashboard = () => {
   const [operatingRooms, setOperatingRooms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [editingSchedule, setEditingSchedule] = useState(false);
-  const [tempSchedule, setTempSchedule] = useState([]);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -44,12 +43,37 @@ export const DoctorDashboard = () => {
       setLoading(true);
       const startDate = new Date();
       const endDate = new Date();
-      endDate.setDate(endDate.getDate() + 7);
+      endDate.setDate(endDate.getDate() + 30);
 
       const response = await api.doctor.getSchedule(user.cf, startDate, endDate);
-      const weeklySchedule = response.weeklySchedule || [];
-      setSchedule(weeklySchedule);
-      setTempSchedule(weeklySchedule);
+      
+      // Transform visits and surgeries into FullCalendar events
+      const events = [
+        ...response.visits.map(visit => ({
+          id: `visit-${visit.id_visita}`,
+          title: `Visit: ${visit.paziente.nome} ${visit.paziente.cognome}`,
+          start: new Date(visit.dataora),
+          end: new Date(new Date(visit.dataora).getTime() + 30 * 60000), // 30 minutes duration
+          backgroundColor: '#4299e1', // blue
+          extendedProps: {
+            type: 'visit',
+            ...visit
+          }
+        })),
+        ...response.surgeries.map(surgery => ({
+          id: `surgery-${surgery.id_intervento}`,
+          title: `Surgery: ${surgery.paziente.nome} ${surgery.paziente.cognome}`,
+          start: new Date(surgery.dataoranizio),
+          end: new Date(surgery.dataorafine),
+          backgroundColor: '#48bb78', // green
+          extendedProps: {
+            type: 'surgery',
+            ...surgery
+          }
+        }))
+      ];
+
+      setSchedule(events);
     } catch (err) {
       setError('Failed to load schedule');
     } finally {
@@ -62,12 +86,11 @@ export const DoctorDashboard = () => {
       setLoading(true);
       const startDate = new Date();
       const endDate = new Date();
-      endDate.setDate(endDate.getDate() + 30); // Load next 30 days
+      endDate.setDate(endDate.getDate() + 30);
 
       const response = await api.doctor.getSchedule(user.cf, startDate, endDate);
       const visits = response.visits || [];
       
-      // Sort appointments by date
       const sortedAppointments = visits.sort((a, b) => 
         new Date(a.dataora) - new Date(b.dataora)
       );
@@ -82,7 +105,7 @@ export const DoctorDashboard = () => {
 
   const loadSurgeryTypes = async () => {
     try {
-      const response = await api.protected.request('/api/doctor/surgery-types');
+      const response = await api.doctor.getSurgeryTypes();
       setSurgeryTypes(response);
     } catch (err) {
       setError('Failed to load surgery types');
@@ -91,7 +114,7 @@ export const DoctorDashboard = () => {
 
   const loadOperatingRooms = async () => {
     try {
-      const response = await api.protected.request('/api/doctor/operating-rooms');
+      const response = await api.doctor.getOperatingRooms();
       setOperatingRooms(response);
     } catch (err) {
       setError('Failed to load operating rooms');
@@ -105,7 +128,6 @@ export const DoctorDashboard = () => {
         motivo: newOutcome
       });
       
-      // Refresh appointments
       await loadAppointments();
       setUpdatingOutcome(false);
       setNewOutcome('');
@@ -118,10 +140,6 @@ export const DoctorDashboard = () => {
 
   const handleScheduleSurgery = async () => {
     try {
-      if(!selectedAppointment) {
-        setError('Please select an appointment to schedule surgery');
-        return;
-      }
       setLoading(true);
       await api.doctor.scheduleSurgery({
         ...surgeryForm,
@@ -129,7 +147,6 @@ export const DoctorDashboard = () => {
         cf_dottore: user.cf
       });
       
-      // Reset form and refresh
       setSurgeryForm({
         id_tipo: '',
         id_sala: '',
@@ -138,6 +155,7 @@ export const DoctorDashboard = () => {
         note: ''
       });
       alert('Surgery scheduled successfully!');
+      loadDoctorSchedule();
     } catch (err) {
       setError('Failed to schedule surgery');
     } finally {
@@ -145,43 +163,11 @@ export const DoctorDashboard = () => {
     }
   };
 
-  const handleSaveSchedule = async () => {
-    try {
-      setLoading(true);
-      await api.doctor.setWeeklySchedule({
-        dottoreId: user.cf,
-        availabilities: tempSchedule
-      });
-      setSchedule(tempSchedule);
-      setEditingSchedule(false);
-    } catch (err) {
-      setError('Failed to save schedule');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleTimeSlotToggle = (day, time) => {
-    if (!editingSchedule) return;
-
-    const existingSlot = tempSchedule.find(
-      slot => slot.giornodellaSettimana === day && 
-      slot.orainizio.includes(time)
-    );
-
-    if (existingSlot) {
-      setTempSchedule(tempSchedule.filter(slot => slot !== existingSlot));
-    } else {
-      // Add new 1-hour slot
-      const endTime = `${(parseInt(time) + 1).toString().padStart(2, '0')}:00:00`;
-      setTempSchedule([
-        ...tempSchedule,
-        {
-          giornodellaSettimana: day,
-          orainizio: time + ':00',
-          orafine: endTime
-        }
-      ]);
+  const handleEventClick = (info) => {
+    const { extendedProps } = info.event;
+    if (extendedProps.type === 'visit') {
+      setActiveTab('appointments');
+      setSelectedAppointment(extendedProps);
     }
   };
 
@@ -222,85 +208,30 @@ export const DoctorDashboard = () => {
 
       {activeTab === 'schedule' && (
         <div className="bg-white shadow rounded-lg p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-medium text-gray-900">Weekly Schedule</h2>
-            <div className="space-x-2">
-              {editingSchedule ? (
-                <>
-                  <button
-                    onClick={handleSaveSchedule}
-                    className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                  >
-                    Save Changes
-                  </button>
-                  <button
-                    onClick={() => {
-                      setTempSchedule(schedule);
-                      setEditingSchedule(false);
-                    }}
-                    className="bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400"
-                  >
-                    Cancel
-                  </button>
-                </>
-              ) : (
-                <button
-                  onClick={() => setEditingSchedule(true)}
-                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                >
-                  Edit Schedule
-                </button>
-              )}
-            </div>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Time
-                  </th>
-                  {DAYS.map(day => (
-                    <th
-                      key={day}
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
-                      {day}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {TIME_SLOTS.map(time => (
-                  <tr key={time}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {time}
-                    </td>
-                    {DAYS.map(day => {
-                      const isAvailable = (editingSchedule ? tempSchedule : schedule).some(
-                        slot => 
-                          slot.giornodellaSettimana === day &&
-                          slot.orainizio.includes(time)
-                      );
-                      return (
-                        <td
-                          key={`${day}-${time}`}
-                          onClick={() => handleTimeSlotToggle(day, time)}
-                          className={`
-                            px-6 py-4 whitespace-nowrap text-sm
-                            ${editingSchedule ? 'cursor-pointer hover:bg-gray-100' : ''}
-                            ${isAvailable ? 'bg-green-100' : ''}
-                          `}
-                        >
-                          {isAvailable && '✓'}
-                        </td>
-                      );
-                    })}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="h-[600px]">
+            <FullCalendar
+              plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+              initialView="timeGridWeek"
+              headerToolbar={{
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+              }}
+              events={schedule}
+              eventClick={handleEventClick}
+              slotMinTime="08:00:00"
+              slotMaxTime="20:00:00"
+              allDaySlot={false}
+              slotDuration="00:30:00"
+              height="100%"
+              locale="it"
+              firstDay={1}
+              businessHours={{
+                daysOfWeek: [1, 2, 3, 4, 5],
+                startTime: '08:00',
+                endTime: '20:00',
+              }}
+            />
           </div>
         </div>
       )}
