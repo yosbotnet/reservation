@@ -8,11 +8,11 @@ Features offered by the system: Public Area:
 * View surgery appointments
 * View assigned post-operative protocols
 Doctors' Area:
-* Accept patient visit
-* Create surgery appointment
-* Manage availability calendar
-* View scheduled surgeries
-* Access assigned patient information
+* Accept patient visit X
+* Create surgery appointment X
+* Manage availability calendar 
+* View scheduled surgeries X
+* Access assigned patient information X
 Administrative Area:
 * User registry management
 * Operating room and equipment management

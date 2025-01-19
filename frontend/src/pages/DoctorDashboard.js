@@ -2,14 +2,14 @@ import { useState, useEffect } from 'react';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { useAuth } from '../contexts/AuthContext';
 import { api } from '../api/api';
-import FullCalendar from '@fullcalendar/react';
-import dayGridPlugin from '@fullcalendar/daygrid';
-import timeGridPlugin from '@fullcalendar/timegrid';
-import interactionPlugin from '@fullcalendar/interaction';
+import { Schedule } from '../components/doctor/Schedule';
+import { Appointments } from '../components/doctor/Appointments';
+import { Surgeries } from '../components/doctor/Surgeries';
 
 export const DoctorDashboard = () => {
   const [activeTab, setActiveTab] = useState('schedule');
   const [schedule, setSchedule] = useState([]);
+  const [workHours, setWorkHours] = useState([]);
   const [appointments, setAppointments] = useState([]);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [updatingOutcome, setUpdatingOutcome] = useState(false);
@@ -47,6 +47,9 @@ export const DoctorDashboard = () => {
 
       const response = await api.doctor.getSchedule(user.cf, startDate, endDate);
       
+      // Set work hours
+      setWorkHours(response.weeklySchedule || []);
+
       // Transform visits and surgeries into FullCalendar events
       const events = [
         ...response.visits.map(visit => ({
@@ -163,15 +166,28 @@ export const DoctorDashboard = () => {
     }
   };
 
-  const handleEventClick = (info) => {
-    const { extendedProps } = info.event;
-    if (extendedProps.type === 'visit') {
-      setActiveTab('appointments');
-      setSelectedAppointment(extendedProps);
+  const handleEventClick = (appointment) => {
+    setSelectedAppointment(appointment);
+    setActiveTab('appointments');
+  };
+
+  const handleWorkHoursUpdate = async (newSchedule) => {
+    try {
+      setLoading(true);
+      await api.doctor.setWeeklySchedule({
+        dottoreId: user.cf,
+        availabilities: newSchedule
+      });
+      setWorkHours(newSchedule);
+      await loadDoctorSchedule(); // Reload schedule to reflect changes
+    } catch (err) {
+      setError('Failed to update work hours');
+    } finally {
+      setLoading(false);
     }
   };
 
-  if (loading) {
+  if (loading && !activeTab) {
     return (
       <div className="h-64">
         <LoadingSpinner size="large" />
@@ -207,241 +223,39 @@ export const DoctorDashboard = () => {
       )}
 
       {activeTab === 'schedule' && (
-        <div className="bg-white shadow rounded-lg p-6">
-          <div className="h-[600px]">
-            <FullCalendar
-              plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-              initialView="timeGridWeek"
-              headerToolbar={{
-                left: 'prev,next today',
-                center: 'title',
-                right: 'dayGridMonth,timeGridWeek,timeGridDay'
-              }}
-              events={schedule}
-              eventClick={handleEventClick}
-              slotMinTime="08:00:00"
-              slotMaxTime="20:00:00"
-              allDaySlot={false}
-              slotDuration="00:30:00"
-              height="100%"
-              locale="it"
-              firstDay={1}
-              businessHours={{
-                daysOfWeek: [1, 2, 3, 4, 5],
-                startTime: '08:00',
-                endTime: '20:00',
-              }}
-            />
-          </div>
-        </div>
+        <Schedule
+          schedule={schedule}
+          onEventClick={handleEventClick}
+          workHours={workHours}
+          onWorkHoursUpdate={handleWorkHoursUpdate}
+          loading={loading}
+        />
       )}
 
       {activeTab === 'appointments' && (
-        <div className="bg-white shadow rounded-lg p-6">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">Appointments</h2>
-          
-          {appointments.length === 0 ? (
-            <p className="text-gray-500">No upcoming appointments</p>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="md:col-span-1 space-y-4">
-                {appointments.map((appointment) => (
-                  <div
-                    key={appointment.id_visita}
-                    onClick={() => setSelectedAppointment(appointment)}
-                    className={`
-                      p-4 rounded-lg border cursor-pointer transition-colors
-                      ${selectedAppointment?.id_visita === appointment.id_visita
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200 hover:border-blue-500'}
-                    `}
-                  >
-                    <div className="font-medium">
-                      {new Date(appointment.dataora).toLocaleDateString()} at{' '}
-                      {new Date(appointment.dataora).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </div>
-                    <div className="text-sm text-gray-500">
-                      Patient: {appointment.paziente.nome} {appointment.paziente.cognome}
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="md:col-span-2">
-                {selectedAppointment ? (
-                  <div className="bg-gray-50 p-6 rounded-lg">
-                    <h3 className="text-lg font-medium text-gray-900 mb-4">Appointment Details</h3>
-                    
-                    <div className="space-y-4">
-                      <div>
-                        <h4 className="text-sm font-medium text-gray-500">Date and Time</h4>
-                        <p className="mt-1">
-                          {new Date(selectedAppointment.dataora).toLocaleDateString()}{' '}
-                          {new Date(selectedAppointment.dataora).toLocaleTimeString()}
-                        </p>
-                      </div>
-
-                      <div>
-                        <h4 className="text-sm font-medium text-gray-500">Patient Information</h4>
-                        <p className="mt-1">
-                          {selectedAppointment.paziente.nome} {selectedAppointment.paziente.cognome}
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          Blood Type: {selectedAppointment.paziente.grupposanguigno}
-                        </p>
-                        {selectedAppointment.paziente.allergie?.length > 0 && (
-                          <p className="text-sm text-gray-500">
-                            Allergies: {selectedAppointment.paziente.allergie.join(', ')}
-                          </p>
-                        )}
-                      </div>
-
-                      <div>
-                        <h4 className="text-sm font-medium text-gray-500">Reason for Visit</h4>
-                        <p className="mt-1">{selectedAppointment.motivo}</p>
-                      </div>
-
-                      <div>
-                        <h4 className="text-sm font-medium text-gray-500">Actions</h4>
-                        <div className="mt-2">
-                          {!updatingOutcome ? (
-                            <div className="space-x-2">
-                              <button
-                                onClick={() => setUpdatingOutcome(true)}
-                                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                              >
-                                Update Visit Outcome
-                              </button>
-                              <button
-                                onClick={() => setActiveTab('surgeries')}
-                                className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-                              >
-                                Schedule Surgery
-                              </button>
-                            </div>
-                          ) : (
-                            <div className="space-y-3">
-                              <textarea
-                                value={newOutcome}
-                                onChange={(e) => setNewOutcome(e.target.value)}
-                                className="w-full border border-gray-300 rounded-md shadow-sm py-2 px-3"
-                                rows={3}
-                                placeholder="Enter visit outcome..."
-                              />
-                              <div className="space-x-2">
-                                <button
-                                  onClick={handleUpdateOutcome}
-                                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                                >
-                                  Save Outcome
-                                </button>
-                                <button
-                                  onClick={() => {
-                                    setUpdatingOutcome(false);
-                                    setNewOutcome('');
-                                  }}
-                                  className="bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400"
-                                >
-                                  Cancel
-                                </button>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="bg-gray-50 p-6 rounded-lg text-center text-gray-500">
-                    Select an appointment to view details
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
+        <Appointments
+          appointments={appointments}
+          selectedAppointment={selectedAppointment}
+          onAppointmentSelect={setSelectedAppointment}
+          onUpdateOutcome={handleUpdateOutcome}
+          onScheduleSurgery={() => setActiveTab('surgeries')}
+          loading={loading}
+          updatingOutcome={updatingOutcome}
+          setUpdatingOutcome={setUpdatingOutcome}
+          newOutcome={newOutcome}
+          setNewOutcome={setNewOutcome}
+        />
       )}
 
       {activeTab === 'surgeries' && (
-        <div className="bg-white shadow rounded-lg p-6">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">Schedule Surgery</h2>
-          
-          <div className="max-w-2xl">
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Surgery Type</label>
-                <select
-                  value={surgeryForm.id_tipo}
-                  onChange={(e) => setSurgeryForm({ ...surgeryForm, id_tipo: e.target.value })}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3"
-                >
-                  <option value="">Select a surgery type</option>
-                  {surgeryTypes.map((type) => (
-                    <option key={type.id_tipo} value={type.id_tipo}>
-                      {type.nome} - Complexity: {type.complessita}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Operating Room</label>
-                <select
-                  value={surgeryForm.id_sala}
-                  onChange={(e) => setSurgeryForm({ ...surgeryForm, id_sala: e.target.value })}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3"
-                >
-                  <option value="">Select an operating room</option>
-                  {operatingRooms.map((room) => (
-                    <option key={room.id_sala} value={room.id_sala}>
-                      {room.nome}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Start Date and Time</label>
-                <input
-                  type="datetime-local"
-                  value={surgeryForm.dataoranizio}
-                  onChange={(e) => setSurgeryForm({ ...surgeryForm, dataoranizio: e.target.value })}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700">End Date and Time</label>
-                <input
-                  type="datetime-local"
-                  value={surgeryForm.dataorafine}
-                  onChange={(e) => setSurgeryForm({ ...surgeryForm, dataorafine: e.target.value })}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Notes</label>
-                <textarea
-                  value={surgeryForm.note}
-                  onChange={(e) => setSurgeryForm({ ...surgeryForm, note: e.target.value })}
-                  rows={3}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3"
-                />
-              </div>
-
-              <div className="pt-4">
-                <button
-                  onClick={handleScheduleSurgery}
-                  disabled={!surgeryForm.id_tipo || !surgeryForm.id_sala || !surgeryForm.dataoranizio || !surgeryForm.dataorafine}
-                  className="w-full bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
-                >
-                  Schedule Surgery
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <Surgeries
+          surgeryForm={surgeryForm}
+          onSurgeryFormChange={setSurgeryForm}
+          onScheduleSurgery={handleScheduleSurgery}
+          surgeryTypes={surgeryTypes}
+          operatingRooms={operatingRooms}
+          loading={loading}
+        />
       )}
     </div>
   );
