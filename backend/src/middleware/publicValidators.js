@@ -3,8 +3,8 @@ import { validate } from './validators.js';
 
 export const availabilityValidation = [
   param('doctorId')
-    .matches(/^[A-Z0-9]{10}$/)
-    .withMessage('Invalid doctor registration number format'),
+    .matches(/^[A-Z0-9]{16}$/)
+    .withMessage('Invalid fiscal code format'),
   query('startDate')
     .isISO8601()
     .withMessage('Start date must be a valid ISO 8601 date'),
@@ -29,14 +29,22 @@ export const availabilityValidation = [
 
 export const bookAppointmentValidation = [
   body('doctorId')
-    .matches(/^[A-Z0-9]{10}$/)
-    .withMessage('Invalid doctor registration number format'),
+    .matches(/^[A-Z0-9]{16}$/)
+    .withMessage('Invalid fiscal code format'),
   body('patientId')
     .matches(/^[A-Z0-9]{16}$/)
     .withMessage('Invalid fiscal code format'),
-  body('slotId')
-    .isInt({ min: 1 })
-    .withMessage('Invalid slot ID'),
+  body('appointmentDateTime')
+    .isISO8601()
+    .withMessage('Appointment date must be a valid ISO 8601 date')
+    .custom((value) => {
+      const appointmentDate = new Date(value);
+      const now = new Date();
+      if (appointmentDate <= now) {
+        throw new Error('Appointment date must be in the future');
+      }
+      return true;
+    }),
   body('motivo')
     .isString()
     .trim()

@@ -9,7 +9,7 @@ export const getDoctors = async (req, res, next) => {
         utente: {
           select: {
             nome: true,
-            cognome: true
+            cognome: true,
           }
         },
         specializzato_in: {
@@ -26,6 +26,7 @@ export const getDoctors = async (req, res, next) => {
     
     // Transform the response to match expected format
     const formattedDoctors = doctors.map(doc => ({
+      cf : doc.cf,
       numeroregistrazione: doc.numeroregistrazione,
       nome: doc.utente.nome,
       cognome: doc.utente.cognome,
@@ -131,18 +132,13 @@ export const bookAppointment = async (req, res, next) => {
     const timeOfDay = appointmentDate.toTimeString().slice(0, 8);
 
     // Get doctor's schedule for that day
-    const doctorSchedule = await prisma.orariodilavoro.findFirst({
-      where: {
-        cf: doctorId,
-        giornodellaSettimana: ['domenica', 'lunedi', 'martedi', 'mercoledi', 'giovedi', 'venerdi', 'sabato'][dayOfWeek],
-        orainizio: {
-          lte: timeOfDay
-        },
-        orafine: {
-          gte: timeOfDay
-        }
-      }
-    });
+    const doctorSchedule = await prisma.$queryRaw`
+          SELECT * FROM orariodilavoro 
+          WHERE cf = ${doctorId} 
+          AND giornodellaSettimana = ${dayOfWeek}
+          AND orainizio <= ${timeOfDay}
+          AND orafine >= ${timeOfDay}
+        `;
 
     if (!doctorSchedule) {
       return res.status(400).json({ error: 'Doctor is not available at this time' });

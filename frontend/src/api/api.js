@@ -62,9 +62,9 @@ export const api = {
     bookAppointment: async (appointmentData) => {
       // Transform fields to match new schema
       const transformedData = {
-        cf_dottore: appointmentData.doctorId,
-        cf_paziente: appointmentData.patientId,
-        dataora: appointmentData.appointmentDateTime,
+        doctorId: appointmentData.cf_dottore,
+        patientId: appointmentData.cf_paziente,
+        appointmentDateTime: appointmentData.appointmentDateTime + ':00Z',
         motivo: appointmentData.motivo
       };
 

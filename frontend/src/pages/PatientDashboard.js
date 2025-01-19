@@ -1,5 +1,6 @@
 import { useState, useEffect,useCallback } from 'react';
 import { LoadingSpinner } from '../components/LoadingSpinner';
+import { useAuth } from '../contexts/AuthContext';
 import { api } from '../api/api';
 
 export const PatientDashboard = () => {
@@ -11,6 +12,7 @@ export const PatientDashboard = () => {
   const [appointmentReason, setAppointmentReason] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const {user} = useAuth();
 
   useEffect(() => {
     loadDoctors();
@@ -42,8 +44,14 @@ export const PatientDashboard = () => {
 
       // Generate 30-minute slots between start and end time
       const times = [];
-      let currentTime = new Date(`${selectedDate}T${daySchedule.orainizio}`);
-      const endTime = new Date(`${selectedDate}T${daySchedule.orafine}`);
+      //orainizio e orafine vengono interpretati dall'orm come datetime invece di time, non so perche
+      // Get time in HH:MM:SS format
+      const orainizio = daySchedule.orainizio.split('T')[1];
+
+      // Get time in 24-hour format with milliseconds
+      const orafine =daySchedule.orafine.split('T')[1];;
+      let currentTime = new Date(`${selectedDate}T${orainizio}`);
+      const endTime = new Date(`${selectedDate}T${orafine}`);
 
       while (currentTime < endTime) {
         const timeString = currentTime.toTimeString().slice(0, 5);
@@ -73,7 +81,7 @@ export const PatientDashboard = () => {
       setLoading(false);
     }
   },[selectedDoctor, selectedDate]);
-  
+
   useEffect(() => {
     if (selectedDoctor && selectedDate) {
       loadDoctorAvailability();
@@ -99,6 +107,7 @@ export const PatientDashboard = () => {
       const appointmentDateTime = `${selectedDate}T${selectedTime}`;
       await api.public.bookAppointment({
         cf_dottore: selectedDoctor,
+        cf_paziente: user.cf, // Replace with actual patient ID
         appointmentDateTime,
         motivo: appointmentReason
       });
@@ -136,10 +145,10 @@ export const PatientDashboard = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {doctors.map((doctor) => (
             <button
-              key={doctor.numeroregistrazione}
-              onClick={() => setSelectedDoctor(doctor.numeroregistrazione)}
+              key={doctor.cf}
+              onClick={() => setSelectedDoctor(doctor.cf)}
               className={`p-4 border rounded-lg text-left transition-colors ${
-                selectedDoctor === doctor.numeroregistrazione
+                selectedDoctor === doctor.cf
                   ? 'border-blue-500 bg-blue-50'
                   : 'border-gray-200 hover:border-blue-500'
               }`}
