@@ -11,21 +11,51 @@ export const DoctorDashboard = () => {
   const [schedule, setSchedule] = useState([]);
   const [appointments, setAppointments] = useState([]);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const [updatingOutcome, setUpdatingOutcome] = useState(false);
+  const [newOutcome, setNewOutcome] = useState('');
+  const [surgeryForm, setSurgeryForm] = useState({
+    id_tipo: '',
+    id_sala: '',
+    dataoranizio: '',
+    dataorafine: '',
+    note: ''
+  });
+  const [surgeryTypes, setSurgeryTypes] = useState([]);
+  const [operatingRooms, setOperatingRooms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const { user } = useAuth();
-
-  // Weekly schedule state
   const [editingSchedule, setEditingSchedule] = useState(false);
   const [tempSchedule, setTempSchedule] = useState([]);
+  const { user } = useAuth();
 
   useEffect(() => {
     if (activeTab === 'schedule') {
       loadDoctorSchedule();
     } else if (activeTab === 'appointments') {
       loadAppointments();
+    } else if (activeTab === 'surgeries') {
+      loadSurgeryTypes();
+      loadOperatingRooms();
     }
   }, [activeTab]);
+
+  const loadDoctorSchedule = async () => {
+    try {
+      setLoading(true);
+      const startDate = new Date();
+      const endDate = new Date();
+      endDate.setDate(endDate.getDate() + 7);
+
+      const response = await api.doctor.getSchedule(user.cf, startDate, endDate);
+      const weeklySchedule = response.weeklySchedule || [];
+      setSchedule(weeklySchedule);
+      setTempSchedule(weeklySchedule);
+    } catch (err) {
+      setError('Failed to load schedule');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const loadAppointments = async () => {
     try {
@@ -35,10 +65,10 @@ export const DoctorDashboard = () => {
       endDate.setDate(endDate.getDate() + 30); // Load next 30 days
 
       const response = await api.doctor.getSchedule(user.cf, startDate, endDate);
-      const visits = response.appointments?.visits || [];
+      const visits = response.visits || [];
       
       // Sort appointments by date
-      const sortedAppointments = visits.sort((a, b) =>
+      const sortedAppointments = visits.sort((a, b) => 
         new Date(a.dataora) - new Date(b.dataora)
       );
       
@@ -50,18 +80,66 @@ export const DoctorDashboard = () => {
     }
   };
 
-  const loadDoctorSchedule = async () => {
+  const loadSurgeryTypes = async () => {
+    try {
+      const response = await api.protected.request('/api/doctor/surgery-types');
+      setSurgeryTypes(response);
+    } catch (err) {
+      setError('Failed to load surgery types');
+    }
+  };
+
+  const loadOperatingRooms = async () => {
+    try {
+      const response = await api.protected.request('/api/doctor/operating-rooms');
+      setOperatingRooms(response);
+    } catch (err) {
+      setError('Failed to load operating rooms');
+    }
+  };
+
+  const handleUpdateOutcome = async () => {
     try {
       setLoading(true);
-      const startDate = new Date();
-      const endDate = new Date();
-      endDate.setDate(endDate.getDate() + 7);
-
-      const response = await api.doctor.getSchedule(user.cf, startDate, endDate);
-      setSchedule(response.weeklySchedule || []);
-      setTempSchedule(response.weeklySchedule || []);
+      await api.doctor.updateVisitOutcome(selectedAppointment.id_visita, {
+        motivo: newOutcome
+      });
+      
+      // Refresh appointments
+      await loadAppointments();
+      setUpdatingOutcome(false);
+      setNewOutcome('');
     } catch (err) {
-      setError('Failed to load schedule');
+      setError('Failed to update visit outcome');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleScheduleSurgery = async () => {
+    try {
+      if(!selectedAppointment) {
+        setError('Please select an appointment to schedule surgery');
+        return;
+      }
+      setLoading(true);
+      await api.doctor.scheduleSurgery({
+        ...surgeryForm,
+        cf_paziente: selectedAppointment.paziente.cf,
+        cf_dottore: user.cf
+      });
+      
+      // Reset form and refresh
+      setSurgeryForm({
+        id_tipo: '',
+        id_sala: '',
+        dataoranizio: '',
+        dataorafine: '',
+        note: ''
+      });
+      alert('Surgery scheduled successfully!');
+    } catch (err) {
+      setError('Failed to schedule surgery');
     } finally {
       setLoading(false);
     }
@@ -252,7 +330,7 @@ export const DoctorDashboard = () => {
                       {new Date(appointment.dataora).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </div>
                     <div className="text-sm text-gray-500">
-                      Patient: {appointment.paziente.utente.nome} {appointment.paziente.utente.cognome}
+                      Patient: {appointment.paziente.nome} {appointment.paziente.cognome}
                     </div>
                   </div>
                 ))}
@@ -275,14 +353,16 @@ export const DoctorDashboard = () => {
                       <div>
                         <h4 className="text-sm font-medium text-gray-500">Patient Information</h4>
                         <p className="mt-1">
-                          {selectedAppointment.paziente.utente.nome} {selectedAppointment.paziente.utente.cognome}
+                          {selectedAppointment.paziente.nome} {selectedAppointment.paziente.cognome}
                         </p>
                         <p className="text-sm text-gray-500">
-                          Born: {new Date(selectedAppointment.paziente.utente.datanascita).toLocaleDateString()}
+                          Blood Type: {selectedAppointment.paziente.grupposanguigno}
                         </p>
-                        <p className="text-sm text-gray-500">
-                          Phone: {selectedAppointment.paziente.utente.telefono}
-                        </p>
+                        {selectedAppointment.paziente.allergie?.length > 0 && (
+                          <p className="text-sm text-gray-500">
+                            Allergies: {selectedAppointment.paziente.allergie.join(', ')}
+                          </p>
+                        )}
                       </div>
 
                       <div>
@@ -291,31 +371,51 @@ export const DoctorDashboard = () => {
                       </div>
 
                       <div>
-                        <h4 className="text-sm font-medium text-gray-500">Blood Type</h4>
-                        <p className="mt-1">{selectedAppointment.paziente.grupposanguigno}</p>
-                      </div>
-
-                      <div>
                         <h4 className="text-sm font-medium text-gray-500">Actions</h4>
-                        <div className="mt-2 space-x-2">
-                          <button
-                            onClick={() => {
-                              // TODO: Implement update visit outcome
-                              console.log('Update visit outcome:', selectedAppointment.id_visita);
-                            }}
-                            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                          >
-                            Update Visit Outcome
-                          </button>
-                          <button
-                            onClick={() => {
-                              // TODO: Implement schedule surgery
-                              console.log('Schedule surgery for:', selectedAppointment.id_visita);
-                            }}
-                            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-                          >
-                            Schedule Surgery
-                          </button>
+                        <div className="mt-2">
+                          {!updatingOutcome ? (
+                            <div className="space-x-2">
+                              <button
+                                onClick={() => setUpdatingOutcome(true)}
+                                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                              >
+                                Update Visit Outcome
+                              </button>
+                              <button
+                                onClick={() => setActiveTab('surgeries')}
+                                className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                              >
+                                Schedule Surgery
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="space-y-3">
+                              <textarea
+                                value={newOutcome}
+                                onChange={(e) => setNewOutcome(e.target.value)}
+                                className="w-full border border-gray-300 rounded-md shadow-sm py-2 px-3"
+                                rows={3}
+                                placeholder="Enter visit outcome..."
+                              />
+                              <div className="space-x-2">
+                                <button
+                                  onClick={handleUpdateOutcome}
+                                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                                >
+                                  Save Outcome
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setUpdatingOutcome(false);
+                                    setNewOutcome('');
+                                  }}
+                                  className="bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -333,9 +433,83 @@ export const DoctorDashboard = () => {
 
       {activeTab === 'surgeries' && (
         <div className="bg-white shadow rounded-lg p-6">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">Surgeries</h2>
-          {/* Surgeries section will be implemented in next phase */}
-          <p className="text-gray-500">Coming soon...</p>
+          <h2 className="text-lg font-medium text-gray-900 mb-4">Schedule Surgery</h2>
+          
+          <div className="max-w-2xl">
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Surgery Type</label>
+                <select
+                  value={surgeryForm.id_tipo}
+                  onChange={(e) => setSurgeryForm({ ...surgeryForm, id_tipo: e.target.value })}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3"
+                >
+                  <option value="">Select a surgery type</option>
+                  {surgeryTypes.map((type) => (
+                    <option key={type.id_tipo} value={type.id_tipo}>
+                      {type.nome} - Complexity: {type.complessita}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Operating Room</label>
+                <select
+                  value={surgeryForm.id_sala}
+                  onChange={(e) => setSurgeryForm({ ...surgeryForm, id_sala: e.target.value })}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3"
+                >
+                  <option value="">Select an operating room</option>
+                  {operatingRooms.map((room) => (
+                    <option key={room.id_sala} value={room.id_sala}>
+                      {room.nome}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Start Date and Time</label>
+                <input
+                  type="datetime-local"
+                  value={surgeryForm.dataoranizio}
+                  onChange={(e) => setSurgeryForm({ ...surgeryForm, dataoranizio: e.target.value })}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">End Date and Time</label>
+                <input
+                  type="datetime-local"
+                  value={surgeryForm.dataorafine}
+                  onChange={(e) => setSurgeryForm({ ...surgeryForm, dataorafine: e.target.value })}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Notes</label>
+                <textarea
+                  value={surgeryForm.note}
+                  onChange={(e) => setSurgeryForm({ ...surgeryForm, note: e.target.value })}
+                  rows={3}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3"
+                />
+              </div>
+
+              <div className="pt-4">
+                <button
+                  onClick={handleScheduleSurgery}
+                  disabled={!surgeryForm.id_tipo || !surgeryForm.id_sala || !surgeryForm.dataoranizio || !surgeryForm.dataorafine}
+                  className="w-full bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                >
+                  Schedule Surgery
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

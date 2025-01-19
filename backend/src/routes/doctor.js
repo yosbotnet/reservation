@@ -3,7 +3,9 @@ import {
   setWeeklyAvailability,
   getSchedule,
   updateVisitOutcome,
-  scheduleSurgery
+  scheduleSurgery,
+  getSurgeryTypes,
+  getOperatingRooms
 } from '../controllers/doctor.js';
 import {
   weeklyAvailabilityValidation,
@@ -48,5 +50,11 @@ router.post(
   surgeryScheduleValidation,
   scheduleSurgery
 );
+
+// Get surgery types
+router.get('/surgery-types', getSurgeryTypes);
+
+// Get operating rooms
+router.get('/operating-rooms', getOperatingRooms);
 
 export default router;

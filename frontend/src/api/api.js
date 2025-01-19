@@ -123,6 +123,12 @@ export const api = {
         method: 'POST',
         body: JSON.stringify(transformedData),
       });
+    },
+    getSurgeryTypes: async () => {
+      return api.protected.request('/api/doctor/surgery-types');
+    },
+    getOperatingRooms: async () => {
+      return api.protected.request('/api/doctor/operating-rooms');
     }
   },
   protected: {

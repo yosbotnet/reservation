@@ -52,8 +52,13 @@ export const getSchedule = async (req, res, next) => {
   const cf_dottore = dottoreId;
 
   try {
-    // Get all scheduled activities (visits and surgeries)
-    const [visits, surgeries] = await prisma.$transaction([
+    // Get weekly schedule and all scheduled activities
+    const [weeklySchedule, visits, surgeries] = await prisma.$transaction([
+      prisma.orariodilavoro.findMany({
+        where: {
+          cf: cf_dottore
+        }
+      }),
       prisma.visita.findMany({
         where: {
           cf_dottore,
@@ -104,6 +109,7 @@ export const getSchedule = async (req, res, next) => {
 
     // Format response
     const schedule = {
+      weeklySchedule,
       visits: visits.map(visit => ({
         id_visita: visit.id_visita,
         dataora: visit.dataora,
@@ -216,6 +222,57 @@ export const scheduleSurgery = async (req, res, next) => {
     });
 
     res.status(201).json(surgery);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getSurgeryTypes = async (req, res, next) => {
+  try {
+    const types = await prisma.tipo_intervento.findMany({
+      select: {
+        id_tipo: true,
+        nome: true,
+        complessita: true,
+        durata: true,
+        costo: true,
+        richiede_attrezzatura: {
+          include: {
+            attrezzatura: {
+              select: {
+                nome: true
+              }
+            }
+          }
+        }
+      }
+    });
+
+    res.json(types);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getOperatingRooms = async (req, res, next) => {
+  try {
+    const rooms = await prisma.sala_operativa.findMany({
+      select: {
+        id_sala: true,
+        nome: true,
+        contiene: {
+          include: {
+            attrezzatura: {
+              select: {
+                nome: true
+              }
+            }
+          }
+        }
+      }
+    });
+
+    res.json(rooms);
   } catch (error) {
     next(error);
   }
