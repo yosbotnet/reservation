@@ -5,13 +5,13 @@ import { LoadingSpinner } from '../components/LoadingSpinner';
 
 export const Register = () => {
   const [formData, setFormData] = useState({
-    name: '',
-    surname: '',
-    fiscalCode: '',
-    birthDate: '',
+    nome: '',
+    cognome: '',
+    cf: '',
+    datanascita: '',
     email: '',
-    phone: '',
-    bloodType: '',
+    telefono: '',
+    grupposanguigno: '',
     password: '',
     confirmPassword: ''
   });
@@ -22,16 +22,15 @@ export const Register = () => {
   const navigate = useNavigate();
 
   const bloodTypes = [
-    { value: 'A_', label: 'A+' },
-    { value: 'A_MINUS', label: 'A-' },
-    { value: 'B_', label: 'B+' },
-    { value: 'B_MINUS', label: 'B-' },
-    { value: 'AB_', label: 'AB+' },
-    { value: 'AB_MINUS', label: 'AB-' },
-    { value: 'ZERO_', label: 'O+' },
-    { value: 'ZERO_MINUS', label: 'O-' }
+    { value: 'A+', label: 'A+' },
+    { value: 'A-', label: 'A-' },
+    { value: 'B+', label: 'B+' },
+    { value: 'B-', label: 'B-' },
+    { value: 'AB+', label: 'AB+' },
+    { value: 'AB-', label: 'AB-' },
+    { value: '0+', label: 'O+' },
+    { value: '0-', label: 'O-' }
   ];
-  const severityLevels = ['BASSA', 'MEDIA', 'ALTA'];
 
   useEffect(() => {
     loadAllergies();
@@ -59,21 +58,16 @@ export const Register = () => {
 
     try {
       const registrationData = {
-        nome: formData.name,
         username: formData.email,
-        cognome: formData.surname,
-        codiceFiscale: formData.fiscalCode,
-        dataNascita: formData.birthDate,
-        email: formData.email,
-        telefono: formData.phone,
-        gruppoSanguigno: formData.bloodType,
         password: formData.password,
-        ruolo: 'PAZIENTE',
-        allergies: selectedAllergies.map(allergy => ({
-          allergiaId: allergy.id,
-          gravita: allergy.severity,
-          note: allergy.notes
-        }))
+        tipoutente: 'paziente',
+        nome: formData.nome,
+        cognome: formData.cognome,
+        cf: formData.cf,
+        datanascita: formData.datanascita,
+        telefono: formData.telefono,
+        grupposanguigno: formData.grupposanguigno,
+        allergie: selectedAllergies.map(allergy => allergy.nome)
       };
       await api.auth.register(registrationData);
       navigate('/login', { state: { message: 'Registration successful. Please login.' } });
@@ -87,16 +81,16 @@ export const Register = () => {
   };
 
   const handleAllergyAdd = () => {
-    setSelectedAllergies([...selectedAllergies, { id: '', severity: 'BASSA', notes: '' }]);
+    setSelectedAllergies([...selectedAllergies, { nome: '' }]);
   };
 
   const handleAllergyRemove = (index) => {
     setSelectedAllergies(selectedAllergies.filter((_, i) => i !== index));
   };
 
-  const handleAllergyChange = (index, field, value) => {
+  const handleAllergyChange = (index, nome) => {
     const updatedAllergies = [...selectedAllergies];
-    updatedAllergies[index] = { ...updatedAllergies[index], [field]: value };
+    updatedAllergies[index] = { nome };
     setSelectedAllergies(updatedAllergies);
   };
 
@@ -122,10 +116,10 @@ export const Register = () => {
             <label className="block text-sm font-medium text-gray-700">Name</label>
             <input
               type="text"
-              name="name"
+              name="nome"
               required
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              value={formData.name}
+              value={formData.nome}
               onChange={handleChange}
             />
           </div>
@@ -134,10 +128,10 @@ export const Register = () => {
             <label className="block text-sm font-medium text-gray-700">Surname</label>
             <input
               type="text"
-              name="surname"
+              name="cognome"
               required
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              value={formData.surname}
+              value={formData.cognome}
               onChange={handleChange}
             />
           </div>
@@ -146,10 +140,10 @@ export const Register = () => {
             <label className="block text-sm font-medium text-gray-700">Fiscal Code</label>
             <input
               type="text"
-              name="fiscalCode"
+              name="cf"
               required
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              value={formData.fiscalCode}
+              value={formData.cf}
               onChange={handleChange}
             />
           </div>
@@ -158,10 +152,10 @@ export const Register = () => {
             <label className="block text-sm font-medium text-gray-700">Birth Date</label>
             <input
               type="date"
-              name="birthDate"
+              name="datanascita"
               required
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              value={formData.birthDate}
+              value={formData.datanascita}
               onChange={handleChange}
             />
           </div>
@@ -182,10 +176,10 @@ export const Register = () => {
             <label className="block text-sm font-medium text-gray-700">Phone</label>
             <input
               type="tel"
-              name="phone"
+              name="telefono"
               required
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              value={formData.phone}
+              value={formData.telefono}
               onChange={handleChange}
             />
           </div>
@@ -193,10 +187,10 @@ export const Register = () => {
           <div>
             <label className="block text-sm font-medium text-gray-700">Blood Type</label>
             <select
-              name="bloodType"
+              name="grupposanguigno"
               required
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              value={formData.bloodType}
+              value={formData.grupposanguigno}
               onChange={handleChange}
             >
               <option value="">Select blood type</option>
@@ -230,35 +224,17 @@ export const Register = () => {
                       Remove
                     </button>
                   </div>
-                  <div className="space-y-3">
-                    <select
-                      value={allergy.id}
-                      onChange={(e) => handleAllergyChange(index, 'id', e.target.value)}
-                      className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      required
-                    >
-                      <option value="">Select allergy</option>
-                      {allergies.map(a => (
-                        <option key={a.id} value={a.id}>{a.nome}</option>
-                      ))}
-                    </select>
-                    <select
-                      value={allergy.severity}
-                      onChange={(e) => handleAllergyChange(index, 'severity', e.target.value)}
-                      className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      required
-                    >
-                      {severityLevels.map(level => (
-                        <option key={level} value={level}>{level}</option>
-                      ))}
-                    </select>
-                    <textarea
-                      value={allergy.notes}
-                      onChange={(e) => handleAllergyChange(index, 'notes', e.target.value)}
-                      placeholder="Additional notes"
-                      className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    />
-                  </div>
+                  <select
+                    value={allergy.nome}
+                    onChange={(e) => handleAllergyChange(index, e.target.value)}
+                    className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    required
+                  >
+                    <option value="">Select allergy</option>
+                    {allergies.map(a => (
+                      <option key={a.nome} value={a.nome}>{a.nome}</option>
+                    ))}
+                  </select>
                 </div>
               ))}
             </div>

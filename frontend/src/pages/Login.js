@@ -18,19 +18,22 @@ export const Login = () => {
       login(response.user);
       localStorage.setItem('token', response.token);
       
-      // Redirect based on user role
-      switch (response.user.role) {
-        case 'ADMIN':
+      // Redirect based on user type (tipoutente)
+      switch (response.user.tipoutente) {
+        case 'admin':
           navigate('/admin');
           break;
-        case 'DOCTOR':
+        case 'dottore':
           navigate('/doctor');
           break;
+        case 'paziente':
+          navigate('/patient/dashboard');
+          break;
         default:
-          navigate('/appointments');
+          navigate('/');
       }
     } catch (err) {
-      setError('Invalid email or password');
+      setError('Invalid username or password');
     }
   };
 
@@ -56,10 +59,10 @@ export const Login = () => {
             <div>
               <input
                 name="username"
-                type="email"
+                type="text"
                 required
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Email address"
+                placeholder="Username"
                 value={formData.username}
                 onChange={handleChange}
               />

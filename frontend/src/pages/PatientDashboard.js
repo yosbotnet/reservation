@@ -1,24 +1,84 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect,useCallback } from 'react';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { api } from '../api/api';
 
 export const PatientDashboard = () => {
   const [doctors, setDoctors] = useState([]);
   const [selectedDoctor, setSelectedDoctor] = useState(null);
-  const [availableSlots, setAvailableSlots] = useState([]);
+  const [selectedDate, setSelectedDate] = useState('');
+  const [selectedTime, setSelectedTime] = useState('');
+  const [availableTimes, setAvailableTimes] = useState([]);
+  const [appointmentReason, setAppointmentReason] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
     loadDoctors();
   }, []);
+  const loadDoctorAvailability = useCallback(async () => {
+    try {
+      setLoading(true);
+      const startDate = new Date(selectedDate);
+      const endDate = new Date(selectedDate);
+      endDate.setDate(endDate.getDate() + 1);
 
-  useEffect(() => {
-    if (selectedDoctor) {
-      loadAvailableSlots(selectedDoctor);
+      const availability = await api.public.getDoctorAvailability(
+        selectedDoctor,
+        startDate,
+        endDate
+      );
+
+      // Process weekly schedule and existing appointments to determine available times
+      const dayOfWeek = startDate.getDay();
+      const daySchedule = availability.weeklySchedule.find(
+        schedule => schedule.giornodellaSettimana.toLowerCase() === 
+          ['domenica', 'lunedi', 'martedi', 'mercoledi', 'giovedi', 'venerdi', 'sabato'][dayOfWeek]
+      );
+
+      if (!daySchedule) {
+        setAvailableTimes([]);
+        return;
+      }
+
+      // Generate 30-minute slots between start and end time
+      const times = [];
+      let currentTime = new Date(`${selectedDate}T${daySchedule.orainizio}`);
+      const endTime = new Date(`${selectedDate}T${daySchedule.orafine}`);
+
+      while (currentTime < endTime) {
+        const timeString = currentTime.toTimeString().slice(0, 5);
+        const dateTimeString = `${selectedDate}T${timeString}`;
+
+        // Check if this time slot conflicts with any existing appointments
+        const isBooked = availability.appointments.visits.some(visit => 
+          new Date(visit.dataora).toISOString() === new Date(dateTimeString).toISOString()
+        ) || availability.appointments.surgeries.some(surgery => {
+          const surgeryStart = new Date(surgery.dataoranizio);
+          const surgeryEnd = new Date(surgery.dataorafine);
+          const slotTime = new Date(dateTimeString);
+          return slotTime >= surgeryStart && slotTime < surgeryEnd;
+        });
+
+        if (!isBooked) {
+          times.push(timeString);
+        }
+
+        currentTime.setMinutes(currentTime.getMinutes() + 30);
+      }
+
+      setAvailableTimes(times);
+    } catch (err) {
+      setError('Failed to load doctor availability');
+    } finally {
+      setLoading(false);
     }
-  }, [selectedDoctor]);
-
+  },[selectedDoctor, selectedDate]);
+  
+  useEffect(() => {
+    if (selectedDoctor && selectedDate) {
+      loadDoctorAvailability();
+    }
+  }, [selectedDoctor, selectedDate, loadDoctorAvailability]);
   const loadDoctors = async () => {
     try {
       const data = await api.public.getDoctors();
@@ -29,27 +89,25 @@ export const PatientDashboard = () => {
       setLoading(false);
     }
   };
-
-  const loadAvailableSlots = async (doctorId) => {
-    try {
-      setLoading(true);
-      const slots = await api.public.getAvailableSlots(doctorId);
-      setAvailableSlots(slots);
-    } catch (err) {
-      setError('Failed to load available slots');
-    } finally {
-      setLoading(false);
+  const handleBookAppointment = async () => {
+    if (!selectedDoctor || !selectedDate || !selectedTime || !appointmentReason) {
+      setError('Please fill in all required fields');
+      return;
     }
-  };
 
-  const handleBookAppointment = async (slotId) => {
     try {
-      await api.protected.request('/api/appointments', {
-        method: 'POST',
-        body: JSON.stringify({ slotId }),
+      const appointmentDateTime = `${selectedDate}T${selectedTime}`;
+      await api.public.bookAppointment({
+        cf_dottore: selectedDoctor,
+        appointmentDateTime,
+        motivo: appointmentReason
       });
-      // Refresh available slots
-      loadAvailableSlots(selectedDoctor);
+
+      // Reset form
+      setSelectedTime('');
+      setAppointmentReason('');
+      setError('');
+      alert('Appointment booked successfully!');
     } catch (err) {
       setError('Failed to book appointment');
     }
@@ -78,16 +136,18 @@ export const PatientDashboard = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {doctors.map((doctor) => (
             <button
-              key={doctor.id}
-              onClick={() => setSelectedDoctor(doctor.id)}
+              key={doctor.numeroregistrazione}
+              onClick={() => setSelectedDoctor(doctor.numeroregistrazione)}
               className={`p-4 border rounded-lg text-left transition-colors ${
-                selectedDoctor === doctor.id
+                selectedDoctor === doctor.numeroregistrazione
                   ? 'border-blue-500 bg-blue-50'
                   : 'border-gray-200 hover:border-blue-500'
               }`}
             >
-              <div className="font-medium">{doctor.name}</div>
-              <div className="text-sm text-gray-500">{doctor.specialization}</div>
+              <div className="font-medium">{`${doctor.nome} ${doctor.cognome}`}</div>
+              <div className="text-sm text-gray-500">
+                {doctor.specializzazioni.join(', ')}
+              </div>
             </button>
           ))}
         </div>
@@ -95,33 +155,59 @@ export const PatientDashboard = () => {
 
       {selectedDoctor && (
         <div className="bg-white shadow rounded-lg p-6">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">Available Slots</h2>
-          {availableSlots.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {availableSlots.map((slot) => (
-                <div
-                  key={slot.id}
-                  className="p-4 border border-gray-200 rounded-lg"
-                >
-                  <div className="font-medium">
-                    {new Date(slot.startTime).toLocaleDateString()}
-                  </div>
-                  <div className="text-sm text-gray-500">
-                    {new Date(slot.startTime).toLocaleTimeString()} -{' '}
-                    {new Date(slot.endTime).toLocaleTimeString()}
-                  </div>
-                  <button
-                    onClick={() => handleBookAppointment(slot.id)}
-                    className="mt-2 w-full bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                  >
-                    Book
-                  </button>
-                </div>
-              ))}
+          <h2 className="text-lg font-medium text-gray-900 mb-4">Select Date and Time</h2>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Date</label>
+              <input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                min={new Date().toISOString().split('T')[0]}
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3"
+              />
             </div>
-          ) : (
-            <div className="text-gray-500">No available slots</div>
-          )}
+
+            {selectedDate && availableTimes.length > 0 && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Time</label>
+                <select
+                  value={selectedTime}
+                  onChange={(e) => setSelectedTime(e.target.value)}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3"
+                >
+                  <option value="">Select a time</option>
+                  {availableTimes.map((time) => (
+                    <option key={time} value={time}>
+                      {time}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {selectedTime && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Reason for Visit</label>
+                <textarea
+                  value={appointmentReason}
+                  onChange={(e) => setAppointmentReason(e.target.value)}
+                  required
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3"
+                  rows={3}
+                />
+              </div>
+            )}
+
+            {selectedTime && appointmentReason && (
+              <button
+                onClick={handleBookAppointment}
+                className="w-full bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+              >
+                Book Appointment
+              </button>
+            )}
+          </div>
         </div>
       )}
     </div>

@@ -1,7 +1,6 @@
 import express from 'express';
 import {
   setWeeklyAvailability,
-  registerUnavailability,
   getSchedule,
   updateVisitOutcome,
   scheduleSurgery
@@ -28,11 +27,6 @@ router.post(
 );
 
 // Register unavailability period
-router.post(
-  '/availability/unavailable',
-  unavailabilityValidation,
-  registerUnavailability
-);
 
 // Get doctor's schedule
 router.get(

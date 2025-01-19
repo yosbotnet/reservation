@@ -16,7 +16,7 @@ export const Layout = ({ children }) => {
             <div className="flex items-center">
               {user ? (
                 <div className="flex items-center space-x-4">
-                  <span className="text-gray-700">{user.name}</span>
+                  <span className="text-gray-700">{user.nome}</span>
                   <button
                     onClick={logout}
                     className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"

@@ -21,5 +21,10 @@ router.get('/verify', authenticateToken, (req, res) => {
     }
   });
 });
+router.get('/me', authenticateToken, (req, res) => {
+  res.json({
+    user: req.user
+  });
+});
 
 export default router;

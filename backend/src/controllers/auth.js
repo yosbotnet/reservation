@@ -6,18 +6,19 @@ export const register = async (req, res, next) => {
   const {
     username,
     password,
-    ruolo,
+    tipoutente,
     nome,
     cognome,
-    email,
+    datanascita,
     telefono,
     // PAZIENTE specific fields
-    codiceFiscale,
-    dataNascita,
-    gruppoSanguigno,
+    cf,
+    grupposanguigno,
     allergie,
     // DOTTORE specific fields
-    numeroRegistrazione,
+    numeroregistrazione,
+    dataassunzione,
+    iban,
     specializzazioni,
   } = req.body;
 
@@ -30,63 +31,94 @@ export const register = async (req, res, next) => {
 
     // Use transaction to ensure data consistency
     const result = await prisma.$transaction(async (prisma) => {
-      // Create user account
-      const user = await prisma.uTENTE.create({
+      // Create base user account
+      const user = await prisma.utente.create({
         data: {
+          cf,
           username,
           password: hashedPassword,
-          ruolo,
-          riferimentoId: ruolo === 'PAZIENTE' ? codiceFiscale : 
-                        ruolo === 'DOTTORE' ? numeroRegistrazione : 
-                        null
+          nome,
+          cognome,
+          datanascita: new Date(datanascita),
+          telefono,
+          tipoutente,
         },
       });
 
       // Create role-specific record
-      if (ruolo === 'PAZIENTE') {
-        await prisma.pAZIENTE.create({
+      if (tipoutente === 'paziente') {
+        const paziente = await prisma.paziente.create({
           data: {
-            codiceFiscale,
-            nome,
-            cognome,
-            dataNascita: new Date(dataNascita),
-            email,
-            telefono,
-            gruppoSanguigno,
+            cf: user.cf,
+            grupposanguigno,
           },
         });
-        await prisma.pAZIENTE_ALLERGIA.createMany({
-            data: allergie.map((allergiaId) => ({
-                allergiaId,
-                pazienteId: codiceFiscale,
-                gravita,
-                note
-            }),
-        });
-      } else if (ruolo === 'DOTTORE') {
-        await prisma.dOTTORE.create({
+
+        // Create allergies if provided
+        if (allergie && allergie.length > 0) {
+          await prisma.allergia.createMany({
+            data: allergie.map((allergia) => ({
+              cf: user.cf,
+              nomeallergia: allergia
+            })),
+          });
+        }
+      } else if (tipoutente === 'dottore') {
+        const dottore = await prisma.dottore.create({
           data: {
-            numeroRegistrazione,
-            nome,
-            cognome,
-            specializzazioni,
+            cf: user.cf,
+            numeroregistrazione,
+            dataassunzione: new Date(dataassunzione),
+            iban,
           },
         });
+
+        // Create specializations if provided
+        if (specializzazioni && specializzazioni.length > 0) {
+          // First ensure all specializations exist
+          for (const spec of specializzazioni) {
+            await prisma.specializzazione.upsert({
+              where: { nome: spec },
+              update: {},
+              create: { nome: spec },
+            });
+          }
+
+          // Get all specialization IDs
+          const specIds = await prisma.specializzazione.findMany({
+            where: {
+              nome: {
+                in: specializzazioni
+              }
+            },
+            select: {
+              id_specializzazione: true
+            }
+          });
+
+          // Create relationships
+          await prisma.specializzato_in.createMany({
+            data: specIds.map((spec) => ({
+              cf: user.cf,
+              id_specializzazione: spec.id_specializzazione
+            })),
+          });
+        }
       }
 
       return user;
     });
 
     // Generate JWT token
-    const token = generateToken(result.id);
+    const token = generateToken(result.cf);
 
     res.status(201).json({
       message: 'Registration successful',
       token,
       user: {
-        id: result.id,
+        cf: result.cf,
         username: result.username,
-        ruolo: result.ruolo,
+        tipoutente: result.tipoutente,
       },
     });
   } catch (error) {
@@ -106,7 +138,7 @@ export const login = async (req, res, next) => {
 
   try {
     // Find user
-    const user = await prisma.uTENTE.findUnique({
+    const user = await prisma.utente.findUnique({
       where: { username },
     });
 
@@ -125,15 +157,15 @@ export const login = async (req, res, next) => {
     }
 
     // Generate token
-    const token = generateToken(user.id);
+    const token = generateToken(user.cf);
 
     res.json({
       message: 'Login successful',
       token,
       user: {
-        id: user.id,
+        cf: user.cf,
         username: user.username,
-        ruolo: user.ruolo,
+        tipoutente: user.tipoutente,
       },
     });
   } catch (error) {

@@ -1,12 +1,12 @@
 import { prisma } from '../index.js';
 
 export const setWeeklyAvailability = async (req, res, next) => {
-  const { dottoreId, availabilities } = req.body;
+  const { cf_dottore, availabilities } = req.body;
 
   try {
     // Verify doctor exists
-    const doctor = await prisma.dOTTORE.findUnique({
-      where: { numeroRegistrazione: dottoreId }
+    const doctor = await prisma.dottore.findUnique({
+      where: { cf: cf_dottore }
     });
 
     if (!doctor) {
@@ -15,22 +15,20 @@ export const setWeeklyAvailability = async (req, res, next) => {
 
     // Use transaction to update availabilities
     const result = await prisma.$transaction(async (prisma) => {
-      // Delete existing recurring availabilities
-      await prisma.dISPONIBILITA_SETTIMANALE.deleteMany({
+      // Delete existing schedule
+      await prisma.orariodilavoro.deleteMany({
         where: {
-          dottoreId,
-          ricorrente: true
+          cf: cf_dottore
         }
       });
 
-      // Create new availabilities
-      const created = await prisma.dISPONIBILITA_SETTIMANALE.createMany({
+      // Create new schedule
+      const created = await prisma.orariodilavoro.createMany({
         data: availabilities.map(avail => ({
-          dottoreId,
-          giorno: avail.giorno,
-          oraInizio: avail.oraInizio,
-          oraFine: avail.oraFine,
-          ricorrente: true
+          cf: cf_dottore,
+          giornodellaSettimana: avail.giorno.toLowerCase(),
+          orainizio: avail.orainizio,
+          orafine: avail.orafine
         }))
       });
 
@@ -38,7 +36,7 @@ export const setWeeklyAvailability = async (req, res, next) => {
     });
 
     res.json({
-      message: 'Weekly availability updated successfully',
+      message: 'Weekly schedule updated successfully',
       count: result.count
     });
   } catch (error) {
@@ -46,73 +44,93 @@ export const setWeeklyAvailability = async (req, res, next) => {
   }
 };
 
-export const registerUnavailability = async (req, res, next) => {
-  const { dottoreId, dataInizio, dataFine, motivo } = req.body;
-
-  try {
-    const unavailability = await prisma.iNDISPONIBILITA.create({
-      data: {
-        dottoreId,
-        dataInizio: new Date(dataInizio),
-        dataFine: new Date(dataFine),
-        motivo,
-        approvata: false
-      }
-    });
-
-    res.status(201).json(unavailability);
-  } catch (error) {
-    next(error);
-  }
-};
-
 export const getSchedule = async (req, res, next) => {
-  const { dottoreId } = req.params;
+  const { cf_dottore } = req.params;
   const { startDate, endDate } = req.query;
+  const startDateTime = new Date(startDate);
+  const endDateTime = new Date(endDate);
 
   try {
-    const schedule = await prisma.sLOT_DISPONIBILE.findMany({
-      where: {
-        dottoreId,
-        dataOraInizio: {
-          gte: new Date(startDate),
-          lte: new Date(endDate)
-        }
-      },
-      include: {
-        VISITA: {
-          include: {
-            PAZIENTE: {
-              select: {
-                nome: true,
-                cognome: true,
-                codiceFiscale: true,
-                gruppoSanguigno: true,
-                allergie: true
-              }
-            }
+    // Get all scheduled activities (visits and surgeries)
+    const [visits, surgeries] = await prisma.$transaction([
+      prisma.visita.findMany({
+        where: {
+          cf_dottore,
+          dataora: {
+            gte: startDateTime,
+            lte: endDateTime
           }
         },
-        INTERVENTO: {
-          include: {
-            PAZIENTE: {
-              select: {
-                nome: true,
-                cognome: true,
-                codiceFiscale: true,
-                gruppoSanguigno: true,
-                allergie: true
-              }
-            },
-            TIPO_INTERVENTO: true,
-            SALA_OPERATORIA: true
+        include: {
+          paziente: {
+            include: {
+              utente: {
+                select: {
+                  nome: true,
+                  cognome: true
+                }
+              },
+              allergia: true
+            }
           }
         }
-      },
-      orderBy: {
-        dataOraInizio: 'asc'
-      }
-    });
+      }),
+      prisma.intervento.findMany({
+        where: {
+          cf_dottore,
+          dataoranizio: {
+            gte: startDateTime,
+            lte: endDateTime
+          }
+        },
+        include: {
+          paziente: {
+            include: {
+              utente: {
+                select: {
+                  nome: true,
+                  cognome: true
+                }
+              },
+              allergia: true
+            }
+          },
+          tipo_intervento: true,
+          sala_operativa: true
+        }
+      })
+    ]);
+
+    // Format response
+    const schedule = {
+      visits: visits.map(visit => ({
+        id_visita: visit.id_visita,
+        dataora: visit.dataora,
+        motivo: visit.motivo,
+        paziente: {
+          cf: visit.cf_paziente,
+          nome: visit.paziente.utente.nome,
+          cognome: visit.paziente.utente.cognome,
+          grupposanguigno: visit.paziente.grupposanguigno,
+          allergie: visit.paziente.allergia.map(a => a.nomeallergia)
+        }
+      })),
+      surgeries: surgeries.map(surgery => ({
+        id_intervento: surgery.id_intervento,
+        dataoranizio: surgery.dataoranizio,
+        dataorafine: surgery.dataorafine,
+        esito: surgery.esito,
+        paziente: {
+          cf: surgery.cf_paziente,
+          nome: surgery.paziente.utente.nome,
+          cognome: surgery.paziente.utente.cognome,
+          grupposanguigno: surgery.paziente.grupposanguigno,
+          allergie: surgery.paziente.allergia.map(a => a.nomeallergia)
+        },
+        tipo_intervento: surgery.tipo_intervento,
+        sala_operativa: surgery.sala_operativa
+      }))
+    };
 
     res.json(schedule);
   } catch (error) {
@@ -121,15 +139,14 @@ export const getSchedule = async (req, res, next) => {
 };
 
 export const updateVisitOutcome = async (req, res, next) => {
-  const { visitId } = req.params;
-  const { diagnosi, stato } = req.body;
+  const { id_visita } = req.params;
+  const { motivo } = req.body;
 
   try {
-    const visit = await prisma.vISITA.update({
-      where: { id: parseInt(visitId) },
+    const visit = await prisma.visita.update({
+      where: { id_visita: parseInt(id_visita) },
       data: {
-        diagnosi,
-        stato
+        motivo
       }
     });
 
@@ -141,30 +158,59 @@ export const updateVisitOutcome = async (req, res, next) => {
 
 export const scheduleSurgery = async (req, res, next) => {
   const {
-    pazienteId,
-    dottoreId,
-    tipoInterventoId,
-    salaOperatoriaId,
-    slotId,
+    cf_paziente,
+    cf_dottore,
+    id_tipo,
+    id_sala,
+    dataoranizio,
+    dataorafine,
     note
   } = req.body;
 
   try {
-    const surgery = await prisma.iNTERVENTO.create({
+    // Check if the operating room is available
+    const conflictingSurgery = await prisma.intervento.findFirst({
+      where: {
+        id_sala,
+        OR: [
+          {
+            AND: [
+              { dataoranizio: { lte: new Date(dataoranizio) } },
+              { dataorafine: { gt: new Date(dataoranizio) } }
+            ]
+          },
+          {
+            AND: [
+              { dataoranizio: { lt: new Date(dataorafine) } },
+              { dataorafine: { gte: new Date(dataorafine) } }
+            ]
+          }
+        ]
+      }
+    });
+
+    if (conflictingSurgery) {
+      return res.status(400).json({ error: 'Operating room is not available at this time' });
+    }
+
+    const surgery = await prisma.intervento.create({
       data: {
-        pazienteId,
-        dottoreId,
-        tipoInterventoId,
-        salaOperatoriaId,
-        slotId,
-        note,
-        stato: 'PROGRAMMATO'
+        cf_paziente,
+        cf_dottore,
+        id_tipo,
+        id_sala,
+        dataoranizio: new Date(dataoranizio),
+        dataorafine: new Date(dataorafine),
+        esito: 'programmato'
       },
       include: {
-        PAZIENTE: true,
-        TIPO_INTERVENTO: true,
-        SALA_OPERATORIA: true,
-        SLOT_DISPONIBILE: true
+        paziente: {
+          include: {
+            utente: true
+          }
+        },
+        tipo_intervento: true,
+        sala_operativa: true
       }
     });
 

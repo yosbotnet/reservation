@@ -13,8 +13,8 @@ export const authenticateToken = async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     
     // Get user from database
-    const user = await prisma.uTENTE.findUnique({
-      where: { id: decoded.userId }
+    const user = await prisma.utente.findUnique({
+      where: { cf: decoded.userId }
     });
 
     if (!user) {

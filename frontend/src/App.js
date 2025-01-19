@@ -7,15 +7,33 @@ import { Home } from './pages/Home';
 import { PatientDashboard } from './pages/PatientDashboard';
 
 // Protected Route Component
-const ProtectedRoute = ({ children, roles }) => {
-  const { user } = useAuth();
+const ProtectedRoute = ({ children, lock }) => {
+  const { user, isAdmin, isPatient, isDoctor } = useAuth();
   
   if (!user) {
     return <Navigate to="/login" />;
   }
 
-  if (roles && !roles.includes(user.role)) {
-    return <Navigate to="/" />;
+  if (lock) {
+    switch (lock){
+      case 'admin':
+        if (isAdmin()) {
+          return children;
+        }
+        break;
+      case 'dottore':
+        if (isDoctor()) {
+          return children;
+        }
+        break;
+      case 'paziente':
+        if (isPatient()) {
+          return children;
+        }
+        break;
+      default:
+        return <Navigate to="/" />;
+    }
   }
 
   return children;
@@ -23,15 +41,15 @@ const ProtectedRoute = ({ children, roles }) => {
 
 // Role-specific route components
 const AdminRoute = ({ children }) => (
-  <ProtectedRoute roles={['ADMIN']}>{children}</ProtectedRoute>
+  <ProtectedRoute roles={['admin']}>{children}</ProtectedRoute>
 );
 
 const DoctorRoute = ({ children }) => (
-  <ProtectedRoute roles={['DOCTOR']}>{children}</ProtectedRoute>
+  <ProtectedRoute roles={'dottore'}>{children}</ProtectedRoute>
 );
 
 const PatientRoute = ({ children }) => (
-  <ProtectedRoute roles={['PATIENT']}>{children}</ProtectedRoute>
+  <ProtectedRoute roles={['paziente']}>{children}</ProtectedRoute>
 );
 
 function App() {
