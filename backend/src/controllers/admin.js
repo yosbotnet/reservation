@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 
 // User Management
 export const createUser = async (req, res, next) => {
-  const { username, password, ruolo, ...userData } = req.body;
+  const { username, password, tipoutente, ...userData } = req.body;
 
   try {
     const hashedPassword = await bcrypt.hash(
@@ -15,7 +15,7 @@ export const createUser = async (req, res, next) => {
       let riferimentoId = null;
 
       // Create role-specific record first
-      if (ruolo === 'DOTTORE') {
+      if (tipoutente === 'dottore') {
         const doctor = await prisma.dOTTORE.create({
           data: {
             numeroRegistrazione: userData.numeroRegistrazione,
@@ -32,7 +32,7 @@ export const createUser = async (req, res, next) => {
         data: {
           username,
           password: hashedPassword,
-          ruolo,
+          tipoutente,
           riferimentoId
         }
       });

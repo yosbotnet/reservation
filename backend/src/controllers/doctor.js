@@ -45,10 +45,11 @@ export const setWeeklyAvailability = async (req, res, next) => {
 };
 
 export const getSchedule = async (req, res, next) => {
-  const { cf_dottore } = req.params;
+  const { dottoreId } = req.params;
   const { startDate, endDate } = req.query;
   const startDateTime = new Date(startDate);
   const endDateTime = new Date(endDate);
+  const cf_dottore = dottoreId;
 
   try {
     // Get all scheduled activities (visits and surgeries)

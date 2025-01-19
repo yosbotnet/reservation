@@ -56,8 +56,8 @@ export const unavailabilityValidation = [
 
 export const scheduleValidation = [
   param('dottoreId')
-    .matches(/^[A-Z0-9]{10}$/)
-    .withMessage('Invalid doctor registration number format'),
+    .matches(/^[A-Z0-9]{16}$/)
+    .withMessage('Invalid codice fiscale'),
   query('startDate')
     .isISO8601()
     .withMessage('Start date must be a valid ISO 8601 date'),

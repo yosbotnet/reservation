@@ -21,10 +21,10 @@ export const Login = () => {
       // Redirect based on user type (tipoutente)
       switch (response.user.tipoutente) {
         case 'admin':
-          navigate('/admin');
+          navigate('/admin/dashboard');
           break;
         case 'dottore':
-          navigate('/doctor');
+          navigate('/doctor/dashboard');
           break;
         case 'paziente':
           navigate('/patient/dashboard');

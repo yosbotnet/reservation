@@ -13,26 +13,26 @@ export const createUserValidation = [
     .withMessage('Password must contain at least one number')
     .matches(/[A-Z]/)
     .withMessage('Password must contain at least one uppercase letter'),
-  body('ruolo')
-    .isIn(['ADMIN', 'DOTTORE'])
+  body('tipoutente')
+    .isIn(['ADMIN', 'dottore'])
     .withMessage('Invalid role specified'),
-  // Conditional validation for DOTTORE role
+  // Conditional validation for dottore role
   body('numeroRegistrazione')
-    .if(body('ruolo').equals('DOTTORE'))
+    .if(body('tipoutente').equals('dottore'))
     .matches(/^[A-Z0-9]{10}$/)
     .withMessage('Invalid registration number format'),
   body('nome')
-    .if(body('ruolo').equals('DOTTORE'))
+    .if(body('tipoutente').equals('dottore'))
     .trim()
     .isLength({ min: 2, max: 50 })
     .withMessage('Name must be between 2 and 50 characters'),
   body('cognome')
-    .if(body('ruolo').equals('DOTTORE'))
+    .if(body('tipoutente').equals('dottore'))
     .trim()
     .isLength({ min: 2, max: 50 })
     .withMessage('Surname must be between 2 and 50 characters'),
   body('specializzazioni')
-    .if(body('ruolo').equals('DOTTORE'))
+    .if(body('tipoutente').equals('dottore'))
     .isString()
     .withMessage('Specializations must be provided for doctors'),
   validate

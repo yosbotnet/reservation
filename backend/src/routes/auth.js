@@ -17,7 +17,7 @@ router.get('/verify', authenticateToken, (req, res) => {
     user: {
       id: req.user.id,
       username: req.user.username,
-      ruolo: req.user.ruolo
+      tipoutente: req.user.tipoutente
     }
   });
 });

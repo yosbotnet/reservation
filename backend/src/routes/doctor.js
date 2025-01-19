@@ -17,7 +17,7 @@ import { requireRole } from '../middleware/auth.js';
 const router = express.Router();
 
 // Apply doctor role check to all routes
-router.use(requireRole(['DOTTORE']));
+router.use(requireRole(['dottore']));
 
 // Set weekly availability
 router.post(

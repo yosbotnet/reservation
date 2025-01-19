@@ -15,7 +15,7 @@ export const register = async (req, res, next) => {
     cf,
     grupposanguigno,
     allergie,
-    // DOTTORE specific fields
+    // dottore specific fields
     numeroregistrazione,
     dataassunzione,
     iban,

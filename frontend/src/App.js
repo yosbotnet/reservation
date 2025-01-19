@@ -1,10 +1,12 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { DoctorDashboard } from './pages/DoctorDashboard';
 import { Layout } from './components/Layout';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { Home } from './pages/Home';
 import { PatientDashboard } from './pages/PatientDashboard';
+import { AdminDashboard } from './pages/AdminDashboard';
 
 // Protected Route Component
 const ProtectedRoute = ({ children, lock }) => {
@@ -78,9 +80,7 @@ function App() {
               path="/doctor/dashboard" 
               element={
                 <DoctorRoute>
-                  <div className="flex justify-center items-center h-64">
-                    <div className="text-gray-600">Doctor Dashboard (Coming Soon)</div>
-                  </div>
+                  <DoctorDashboard />
                 </DoctorRoute>
               } 
             />
@@ -90,9 +90,7 @@ function App() {
               path="/admin/dashboard" 
               element={
                 <AdminRoute>
-                  <div className="flex justify-center items-center h-64">
-                    <div className="text-gray-600">Admin Dashboard (Coming Soon)</div>
-                  </div>
+                  <AdminDashboard />
                 </AdminRoute>
               } 
             />

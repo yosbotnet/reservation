@@ -12,8 +12,8 @@ export const registerValidation = [
     .withMessage('Password must contain at least one number')
     .matches(/[A-Z]/)
     .withMessage('Password must contain at least one uppercase letter'),
-  body('ruolo')
-    .isIn(['PAZIENTE', 'DOTTORE', 'ADMIN'])
+  body('tipoutente')
+    .isIn(['PAZIENTE', 'dottore', 'ADMIN'])
     .withMessage('Invalid role specified'),
   body('nome')
     .trim()
@@ -32,24 +32,24 @@ export const registerValidation = [
     .withMessage('Invalid phone number format'),
   // Conditional validation for PAZIENTE role
   body('codiceFiscale')
-    .if(body('ruolo').equals('PAZIENTE'))
+    .if(body('tipoutente').equals('PAZIENTE'))
     .matches(/^[A-Z0-9]{16}$/)
     .withMessage('Invalid fiscal code format'),
   body('dataNascita')
-    .if(body('ruolo').equals('PAZIENTE'))
+    .if(body('tipoutente').equals('PAZIENTE'))
     .isISO8601()
     .withMessage('Invalid date format'),
   body('gruppoSanguigno')
-    .if(body('ruolo').equals('PAZIENTE'))
+    .if(body('tipoutente').equals('PAZIENTE'))
     .isIn(['A_', 'A_MINUS', 'B_', 'B_MINUS', 'AB_', 'AB_MINUS', 'ZERO_', 'ZERO_MINUS'])
     .withMessage('Invalid blood type'),
-  // Conditional validation for DOTTORE role
+  // Conditional validation for dottore role
   body('numeroRegistrazione')
-    .if(body('ruolo').equals('DOTTORE'))
+    .if(body('tipoutente').equals('dottore'))
     .matches(/^[A-Z0-9]{10}$/)
     .withMessage('Invalid registration number format'),
   body('specializzazioni')
-    .if(body('ruolo').equals('DOTTORE'))
+    .if(body('tipoutente').equals('dottore'))
     .isString()
     .withMessage('Specializations must be provided for doctors')
 ];

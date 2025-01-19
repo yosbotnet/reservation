@@ -36,8 +36,8 @@ export const api = {
   },
   public: {
     getDoctors: async () => {
-      const response = await fetch(`${API_URL}/api/public/doctors`);
-      if (!response.ok) throw new Error('Failed to fetch doctors');
+      const response = await fetch(`${API_URL}/api/public/doctor`);
+      if (!response.ok) throw new Error('Failed to fetch doctor');
       return response.json();
     },
     getAllergies: async () => {
@@ -55,7 +55,7 @@ export const api = {
         startDate: startDate.toISOString(),
         endDate: endDate.toISOString()
       });
-      const response = await fetch(`${API_URL}/api/public/doctors/${cf_dottore}/availability?${params}`);
+      const response = await fetch(`${API_URL}/api/public/doctor/${cf_dottore}/availability?${params}`);
       if (!response.ok) throw new Error('Failed to fetch doctor availability');
       return response.json();
     },
@@ -89,7 +89,7 @@ export const api = {
         }))
       };
 
-      return api.protected.request('/api/doctors/schedule', {
+      return api.protected.request('/api/doctor/schedule', {
         method: 'POST',
         body: JSON.stringify(transformedData),
       });
@@ -99,10 +99,10 @@ export const api = {
         startDate: startDate.toISOString(),
         endDate: endDate.toISOString()
       });
-      return api.protected.request(`/api/doctors/${cf_dottore}/schedule?${params}`);
+      return api.protected.request(`/api/doctor/${cf_dottore}/schedule?${params}`);
     },
     updateVisitOutcome: async (id_visita, outcomeData) => {
-      return api.protected.request(`/api/doctors/visits/${id_visita}`, {
+      return api.protected.request(`/api/doctor/visits/${id_visita}`, {
         method: 'PATCH',
         body: JSON.stringify(outcomeData),
       });
@@ -119,7 +119,7 @@ export const api = {
         note: surgeryData.note
       };
 
-      return api.protected.request('/api/doctors/surgeries', {
+      return api.protected.request('/api/doctor/surgeries', {
         method: 'POST',
         body: JSON.stringify(transformedData),
       });

@@ -9,7 +9,7 @@
 See attached ER diagram. Key entities:
 - UTENTE (users with roles)
 - PAZIENTE (patients)
-- DOTTORE (doctors)
+- dottore (doctors)
 - SLOT_DISPONIBILE (available time slots)
 - INTERVENTO (surgeries)
 - VISITA (visits)
