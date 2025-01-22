@@ -5,7 +5,7 @@ import {
 export const ProcedurePieChart = ({ data }) => {
   const transformData = (data) => 
     data?.map(proc => ({
-      name: `Procedure ${proc.tipoInterventoId}`,
+      name: `Procedure ${proc.id_tipo}`,
       value: proc._count
     })) || [];
 

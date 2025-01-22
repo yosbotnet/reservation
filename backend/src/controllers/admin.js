@@ -230,8 +230,6 @@ export const getEquipment = async (req, res, next) => {
       select: {
         id_attrezzatura: true,
         nome: true,
-        stato: true,
-        ultimaManutenzione: true
       }
     });
     res.json(equipment);

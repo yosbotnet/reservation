@@ -10,16 +10,16 @@ Features offered by the system: Public Area:
 Doctors' Area:
 * Accept patient visit X
 * Create surgery appointment X
-* Manage availability calendar 
+* Manage availability calendar x
 * View scheduled surgeries X
 * Access assigned patient information X
 Administrative Area:
-* User registry management
-* Operating room and equipment management
-* Management of offered procedures catalog
-* Equipment inventory management
+* User registry management P
+* Operating room and equipment management P
+* Management of offered procedures catalog P
+* Equipment inventory management P
 Information provided by the system:
-* Operating room occupancy rate in the last 3 months
-* Statistics comparing actual vs. estimated procedure durations
-* Number of operations performed by type in the last year
-* A list of doctors with the highest number of successful operations
+* Operating room occupancy rate in the last 3 months P
+* Statistics comparing actual vs. estimated procedure durations P
+* Number of operations performed by type in the last year P
+* A list of doctors with the highest number of successful operations P

@@ -5,7 +5,7 @@ import {
 export const RoomOccupancyChart = ({ data }) => {
   const transformData = (data) => 
     data?.map(room => ({
-      name: `Room ${room.salaOperatoriaId}`,
+      name: `Room ${room.id_sala}`,
       Occupancy: room._count
     })) || [];
 

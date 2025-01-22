@@ -6,8 +6,8 @@ export const DurationAnalysisChart = ({ data }) => {
   const transformData = (data) => 
     data?.map(item => ({
       name: `Case ${item.id}`,
-      Estimated: item.TIPO_INTERVENTO?.durataStimata,
-      Actual: item.durataEffettiva
+      Estimated: item.estimatedDuration,
+      Actual: item.actualDuration
     })) || [];
 
   return (
