@@ -1,6 +1,7 @@
 import { body, param, query } from 'express-validator';
 import { validate } from './validators.js';
 
+// User Management
 export const createUserValidation = [
   body('username')
     .trim()
@@ -14,7 +15,7 @@ export const createUserValidation = [
     .matches(/[A-Z]/)
     .withMessage('Password must contain at least one uppercase letter'),
   body('tipoutente')
-    .isIn(['ADMIN', 'dottore'])
+    .isIn(['admin', 'dottore', 'paziente'])
     .withMessage('Invalid role specified'),
   // Conditional validation for dottore role
   body('numeroRegistrazione')
@@ -22,26 +23,25 @@ export const createUserValidation = [
     .matches(/^[A-Z0-9]{10}$/)
     .withMessage('Invalid registration number format'),
   body('nome')
-    .if(body('tipoutente').equals('dottore'))
     .trim()
     .isLength({ min: 2, max: 50 })
     .withMessage('Name must be between 2 and 50 characters'),
   body('cognome')
-    .if(body('tipoutente').equals('dottore'))
     .trim()
     .isLength({ min: 2, max: 50 })
     .withMessage('Surname must be between 2 and 50 characters'),
   body('specializzazioni')
     .if(body('tipoutente').equals('dottore'))
-    .isString()
+    .isArray()
     .withMessage('Specializations must be provided for doctors'),
   validate
 ];
 
 export const updateUserValidation = [
-  param('id')
-    .isInt({ min: 1 })
-    .withMessage('Invalid user ID'),
+  param('cf')
+    .isString()
+    .isLength({ min: 16, max: 16 })
+    .withMessage('Invalid fiscal code format'),
   body('password')
     .optional()
     .isLength({ min: 6 })
@@ -53,25 +53,32 @@ export const updateUserValidation = [
   validate
 ];
 
+// Operating Room Management
 export const operatingRoomValidation = [
-  body('codice')
-    .matches(/^[A-Z0-9]{10}$/)
-    .withMessage('Invalid operating room code format'),
   body('nome')
     .trim()
     .isLength({ min: 2, max: 50 })
     .withMessage('Name must be between 2 and 50 characters'),
-  body('attrezzatureFisse')
+  body('attrezzature')
     .optional()
-    .isString()
-    .withMessage('Fixed equipment must be a string'),
+    .isArray()
+    .withMessage('Equipment must be an array of IDs'),
+  body('attrezzature.*')
+    .optional()
+    .isInt({ min: 1 })
+    .withMessage('Equipment IDs must be positive integers'),
   validate
 ];
 
+export const updateOperatingRoomValidation = [
+  param('id_sala')
+    .isInt({ min: 1 })
+    .withMessage('Invalid operating room ID'),
+  ...operatingRoomValidation
+];
+
+// Equipment Management
 export const equipmentValidation = [
-  body('codiceInventario')
-    .matches(/^[A-Z0-9]{20}$/)
-    .withMessage('Invalid inventory code format'),
   body('nome')
     .trim()
     .isLength({ min: 2, max: 100 })
@@ -87,32 +94,41 @@ export const equipmentValidation = [
   validate
 ];
 
+export const updateEquipmentValidation = [
+  param('id_attrezzatura')
+    .isInt({ min: 1 })
+    .withMessage('Invalid equipment ID'),
+  ...equipmentValidation
+];
+
+// Surgery Types Management
 export const surgeryTypeValidation = [
   body('nome')
     .trim()
     .isLength({ min: 2, max: 100 })
     .withMessage('Name must be between 2 and 100 characters'),
-  body('durataStimata')
+  body('durata')
     .isInt({ min: 1 })
-    .withMessage('Estimated duration must be a positive integer'),
+    .withMessage('Duration must be a positive integer'),
   body('descrizione')
     .optional()
     .isString()
     .withMessage('Description must be a string'),
   body('complessita')
-    .isFloat({ min: 0, max: 10 })
-    .withMessage('Complexity must be between 0 and 10'),
-  body('attrezzatureNecessarie')
+    .isIn(['BASSA', 'MEDIA', 'ALTA'])
+    .withMessage('Complexity must be one of: BASSA, MEDIA, ALTA'),
+  body('attrezzature')
     .optional()
     .isArray()
     .withMessage('Required equipment must be an array'),
-  body('attrezzatureNecessarie.*')
+  body('attrezzature.*')
     .optional()
-    .matches(/^[A-Z0-9]{20}$/)
-    .withMessage('Invalid equipment inventory code format'),
+    .isInt({ min: 1 })
+    .withMessage('Equipment IDs must be positive integers'),
   validate
 ];
 
+// Statistics
 export const statisticsValidation = [
   query('startDate')
     .isISO8601()

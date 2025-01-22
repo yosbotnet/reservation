@@ -1,7 +1,7 @@
 -- Inserimento utenti (admin, dottori, pazienti)
 INSERT INTO utente (cf, username, password, nome, cognome, datanascita, telefono, tipoutente)
 VALUES
-('RSSMRA85M01H501Z', 'admin', 'adminpassword', 'Mario', 'Rossi', '1985-01-01', '3331234567', 'admin'),
+('RSSMRA85M01H501Z', 'admin', '$2y$10$vvWa4GxTGWe7Mz0BUtpJ8uf1bAf1.UONOTWoO6D12St2rSLqWOiii', 'Mario', 'Rossi', '1985-01-01', '3331234567', 'admin'),
 ('BNCLSN84M01Z404C', 'giovanni_dottore', '$2y$10$vvWa4GxTGWe7Mz0BUtpJ8uf1bAf1.UONOTWoO6D12St2rSLqWOiii', 'Giovanni', 'Bianchi', '1984-05-10', '3342345678', 'dottore'),
 ('MGCCOR90T25D325Z', 'anna_paziente', '$2y$10$vvWa4GxTGWe7Mz0BUtpJ8uf1bAf1.UONOTWoO6D12St2rSLqWOiii', 'Anna', 'Giacconi', '1990-07-15', '3353456789', 'paziente'),
 ('LPSMRA88S67F205B', 'lucia_paziente', '$2y$10$vvWa4GxTGWe7Mz0BUtpJ8uf1bAf1.UONOTWoO6D12St2rSLqWOiii', 'Lucia', 'Pellegrini', '1988-03-12', '3364567890', 'paziente');

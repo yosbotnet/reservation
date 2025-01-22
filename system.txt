@@ -8,7 +8,7 @@
 ## Database Schema
 See attached ER diagram. Key entities:
 - UTENTE (users with roles)
-- PAZIENTE (patients)
+- paziente (patients)
 - dottore (doctors)
 - SLOT_DISPONIBILE (available time slots)
 - INTERVENTO (surgeries)

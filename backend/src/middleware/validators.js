@@ -13,7 +13,7 @@ export const registerValidation = [
     .matches(/[A-Z]/)
     .withMessage('Password must contain at least one uppercase letter'),
   body('tipoutente')
-    .isIn(['PAZIENTE', 'dottore', 'ADMIN'])
+    .isIn(['paziente', 'dottore', 'admin'])
     .withMessage('Invalid role specified'),
   body('nome')
     .trim()
@@ -30,17 +30,17 @@ export const registerValidation = [
   body('telefono')
     .matches(/^\+?[\d\s-]{8,20}$/)
     .withMessage('Invalid phone number format'),
-  // Conditional validation for PAZIENTE role
+  // Conditional validation for paziente role
   body('codiceFiscale')
-    .if(body('tipoutente').equals('PAZIENTE'))
+    .if(body('tipoutente').equals('paziente'))
     .matches(/^[A-Z0-9]{16}$/)
     .withMessage('Invalid fiscal code format'),
   body('dataNascita')
-    .if(body('tipoutente').equals('PAZIENTE'))
+    .if(body('tipoutente').equals('paziente'))
     .isISO8601()
     .withMessage('Invalid date format'),
   body('gruppoSanguigno')
-    .if(body('tipoutente').equals('PAZIENTE'))
+    .if(body('tipoutente').equals('paziente'))
     .isIn(['A_', 'A_MINUS', 'B_', 'B_MINUS', 'AB_', 'AB_MINUS', 'ZERO_', 'ZERO_MINUS'])
     .withMessage('Invalid blood type'),
   // Conditional validation for dottore role

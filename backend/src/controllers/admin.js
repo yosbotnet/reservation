@@ -2,6 +2,25 @@ import { prisma } from '../index.js';
 import bcrypt from 'bcryptjs';
 
 // User Management
+export const getUsers = async (req, res, next) => {
+  try {
+    const users = await prisma.utente.findMany({
+      select: {
+        cf: true,
+        username: true,
+        nome: true,
+        cognome: true,
+        tipoutente: true,
+        datanascita: true,
+        telefono: true
+      }
+    });
+    res.json(users);
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const createUser = async (req, res, next) => {
   const { username, password, tipoutente, ...userData } = req.body;
 
@@ -12,37 +31,55 @@ export const createUser = async (req, res, next) => {
     );
 
     const result = await prisma.$transaction(async (prisma) => {
-      let riferimentoId = null;
-
-      // Create role-specific record first
-      if (tipoutente === 'dottore') {
-        const doctor = await prisma.dOTTORE.create({
-          data: {
-            numeroRegistrazione: userData.numeroRegistrazione,
-            nome: userData.nome,
-            cognome: userData.cognome,
-            specializzazioni: userData.specializzazioni
-          }
-        });
-        riferimentoId = doctor.numeroRegistrazione;
-      }
-
-      // Create user account
-      const user = await prisma.uTENTE.create({
+      // Create base user account
+      const user = await prisma.utente.create({
         data: {
+          cf: userData.cf,
           username,
           password: hashedPassword,
-          tipoutente,
-          riferimentoId
+          nome: userData.nome,
+          cognome: userData.cognome,
+          datanascita: new Date(userData.datanascita),
+          telefono: userData.telefono,
+          tipoutente
         }
       });
 
-      return { user, riferimentoId };
+      // Create role-specific record
+      if (tipoutente === 'dottore') {
+        await prisma.dottore.create({
+          data: {
+            cf: user.cf,
+            numeroregistrazione: userData.numeroregistrazione,
+            dataassunzione: new Date(),
+            iban: userData.iban
+          }
+        });
+
+        // Handle specializations if provided
+        if (userData.specializzazioni?.length) {
+          await prisma.specializzato_in.createMany({
+            data: userData.specializzazioni.map(specId => ({
+              cf: user.cf,
+              id_specializzazione: specId
+            }))
+          });
+        }
+      } else if (tipoutente === 'paziente') {
+        await prisma.paziente.create({
+          data: {
+            cf: user.cf,
+            grupposanguigno: userData.grupposanguigno
+          }
+        });
+      }
+
+      return user;
     });
 
     res.status(201).json({
       message: 'User created successfully',
-      userId: result.user.id
+      userId: result.cf
     });
   } catch (error) {
     next(error);
@@ -50,7 +87,7 @@ export const createUser = async (req, res, next) => {
 };
 
 export const updateUser = async (req, res, next) => {
-  const { id } = req.params;
+  const { cf } = req.params;
   const { password, ...updateData } = req.body;
 
   try {
@@ -62,14 +99,14 @@ export const updateUser = async (req, res, next) => {
       );
     }
 
-    const user = await prisma.uTENTE.update({
-      where: { id: parseInt(id) },
+    const user = await prisma.utente.update({
+      where: { cf },
       data
     });
 
     res.json({
       message: 'User updated successfully',
-      userId: user.id
+      userId: user.cf
     });
   } catch (error) {
     next(error);
@@ -77,11 +114,11 @@ export const updateUser = async (req, res, next) => {
 };
 
 export const deleteUser = async (req, res, next) => {
-  const { id } = req.params;
+  const { cf } = req.params;
 
   try {
-    await prisma.uTENTE.delete({
-      where: { id: parseInt(id) }
+    await prisma.utente.delete({
+      where: { cf }
     });
 
     res.json({
@@ -93,17 +130,52 @@ export const deleteUser = async (req, res, next) => {
 };
 
 // Operating Room Management
+export const getRooms = async (req, res, next) => {
+  try {
+    const rooms = await prisma.sala_operativa.findMany({
+      include: {
+        contiene: {
+          include: {
+            attrezzatura: true
+          }
+        }
+      }
+    });
+    
+    const formattedRooms = rooms.map(room => ({
+      codice: room.id_sala,
+      nome: room.nome,
+      disponibile: room.disponibile,
+      attrezzatureFisse: room.contiene.map(c => c.attrezzatura.nome)
+    }));
+    
+    res.json(formattedRooms);
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const createOperatingRoom = async (req, res, next) => {
-  const { codice, nome, attrezzatureFisse } = req.body;
+  const { nome, attrezzature } = req.body;
 
   try {
-    const room = await prisma.sALA_OPERATORIA.create({
-      data: {
-        codice,
-        nome,
-        attrezzatureFisse,
-        disponibile: true
+    const room = await prisma.$transaction(async (prisma) => {
+      const sala = await prisma.sala_operativa.create({
+        data: {
+          nome
+        }
+      });
+
+      if (attrezzature?.length) {
+        await prisma.contiene.createMany({
+          data: attrezzature.map(attrezzaturaId => ({
+            id_sala: sala.id_sala,
+            id_attrezzatura: attrezzaturaId
+          }))
+        });
       }
+
+      return sala;
     });
 
     res.status(201).json(room);
@@ -113,13 +185,36 @@ export const createOperatingRoom = async (req, res, next) => {
 };
 
 export const updateOperatingRoom = async (req, res, next) => {
-  const { codice } = req.params;
-  const updateData = req.body;
+  const { id_sala } = req.params;
+  const { nome, attrezzature } = req.body;
 
   try {
-    const room = await prisma.sALA_OPERATORIA.update({
-      where: { codice },
-      data: updateData
+    const room = await prisma.$transaction(async (prisma) => {
+      // Update room name
+      const sala = await prisma.sala_operativa.update({
+        where: { id_sala: parseInt(id_sala) },
+        data: { nome }
+      });
+
+      // Update equipment if provided
+      if (attrezzature) {
+        // Remove existing equipment
+        await prisma.contiene.deleteMany({
+          where: { id_sala: parseInt(id_sala) }
+        });
+
+        // Add new equipment
+        if (attrezzature.length) {
+          await prisma.contiene.createMany({
+            data: attrezzature.map(attrezzaturaId => ({
+              id_sala: sala.id_sala,
+              id_attrezzatura: attrezzaturaId
+            }))
+          });
+        }
+      }
+
+      return sala;
     });
 
     res.json(room);
@@ -129,16 +224,29 @@ export const updateOperatingRoom = async (req, res, next) => {
 };
 
 // Equipment Management
+export const getEquipment = async (req, res, next) => {
+  try {
+    const equipment = await prisma.attrezzatura.findMany({
+      select: {
+        id_attrezzatura: true,
+        nome: true,
+        stato: true,
+        ultimaManutenzione: true
+      }
+    });
+    res.json(equipment);
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const createEquipment = async (req, res, next) => {
-  const { codiceInventario, nome, stato, ultimaManutenzione } = req.body;
+  const { nome } = req.body;
 
   try {
-    const equipment = await prisma.aTTREZZATURA.create({
+    const equipment = await prisma.attrezzatura.create({
       data: {
-        codiceInventario,
-        nome,
-        stato,
-        ultimaManutenzione: ultimaManutenzione ? new Date(ultimaManutenzione) : null
+        nome
       }
     });
 
@@ -149,17 +257,13 @@ export const createEquipment = async (req, res, next) => {
 };
 
 export const updateEquipment = async (req, res, next) => {
-  const { codiceInventario } = req.params;
-  const updateData = req.body;
+  const { id_attrezzatura } = req.params;
+  const { nome } = req.body;
 
   try {
-    if (updateData.ultimaManutenzione) {
-      updateData.ultimaManutenzione = new Date(updateData.ultimaManutenzione);
-    }
-
-    const equipment = await prisma.aTTREZZATURA.update({
-      where: { codiceInventario },
-      data: updateData
+    const equipment = await prisma.attrezzatura.update({
+      where: { id_attrezzatura: parseInt(id_attrezzatura) },
+      data: { nome }
     });
 
     res.json(equipment);
@@ -169,25 +273,52 @@ export const updateEquipment = async (req, res, next) => {
 };
 
 // Surgery Types Management
+export const getSurgeryTypes = async (req, res, next) => {
+  try {
+    const types = await prisma.tipo_intervento.findMany({
+      include: {
+        richiede_attrezzatura: {
+          include: {
+            attrezzatura: true
+          }
+        }
+      }
+    });
+    
+    const formattedTypes = types.map(type => ({
+      id: type.id_tipo,
+      nome: type.nome,
+      descrizione: type.descrizione,
+      durataStimata: type.durata,
+      complessita: type.complessita,
+      attrezzatureNecessarie: type.richiede_attrezzatura.map(r => r.attrezzatura)
+    }));
+    
+    res.json(formattedTypes);
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const createSurgeryType = async (req, res, next) => {
-  const { nome, durataStimata, descrizione, complessita, attrezzatureNecessarie } = req.body;
+  const { nome, durata, descrizione, complessita, attrezzature } = req.body;
 
   try {
     const surgeryType = await prisma.$transaction(async (prisma) => {
-      const type = await prisma.tIPO_INTERVENTO.create({
+      const type = await prisma.tipo_intervento.create({
         data: {
           nome,
-          durataStimata,
-          descrizione,
-          complessita
+          durata,
+          complessita,
+          costo: 0 // This should be calculated based on business logic
         }
       });
 
-      if (attrezzatureNecessarie?.length) {
-        await prisma.aTTREZZATURA_TIPO_INTERVENTO.createMany({
-          data: attrezzatureNecessarie.map(attrezzaturaId => ({
-            tipoInterventoId: type.id,
-            attrezzaturaId
+      if (attrezzature?.length) {
+        await prisma.richiede_attrezzatura.createMany({
+          data: attrezzature.map(attrezzaturaId => ({
+            id_tipo: type.id_tipo,
+            id_attrezzatura: attrezzaturaId
           }))
         });
       }
@@ -209,68 +340,62 @@ export const getStatistics = async (req, res, next) => {
     const [
       roomOccupancy,
       surgeryDurations,
-      doctorSuccess,
+      doctorStats,
       yearlyStats
     ] = await Promise.all([
       // Room occupancy rates
-      prisma.iNTERVENTO.groupBy({
-        by: ['salaOperatoriaId'],
+      prisma.intervento.groupBy({
+        by: ['id_sala'],
         _count: true,
         where: {
-          SLOT_DISPONIBILE: {
-            dataOraInizio: {
-              gte: new Date(startDate),
-              lte: new Date(endDate)
-            }
+          dataoranizio: {
+            gte: new Date(startDate),
+            lte: new Date(endDate)
           }
         }
       }),
       // Surgery duration analysis
-      prisma.iNTERVENTO.findMany({
+      prisma.intervento.findMany({
         where: {
-          stato: 'COMPLETATO',
-          SLOT_DISPONIBILE: {
-            dataOraInizio: {
-              gte: new Date(startDate),
-              lte: new Date(endDate)
-            }
+          esito: 'completato',
+          dataoranizio: {
+            gte: new Date(startDate),
+            lte: new Date(endDate)
           }
         },
         select: {
-          durataEffettiva: true,
-          TIPO_INTERVENTO: {
+          id_intervento: true,
+          dataoranizio: true,
+          dataorafine: true,
+          tipo_intervento: {
             select: {
-              durataStimata: true
+              durata: true
             }
           }
         }
       }),
-      // Success rate by doctor
-      prisma.iNTERVENTO.groupBy({
-        by: ['dottoreId'],
+      // Doctor statistics
+      prisma.intervento.groupBy({
+        by: ['cf_dottore'],
         _count: {
-          successo: true
+          _all: true
         },
         where: {
-          stato: 'COMPLETATO',
-          SLOT_DISPONIBILE: {
-            dataOraInizio: {
-              gte: new Date(startDate),
-              lte: new Date(endDate)
-            }
+          esito: 'completato',
+          dataoranizio: {
+            gte: new Date(startDate),
+            lte: new Date(endDate)
           }
         }
       }),
-      // Yearly surgery statistics
-      prisma.iNTERVENTO.groupBy({
-        by: ['tipoInterventoId'],
+      // Yearly surgery statistics by type
+      prisma.intervento.groupBy({
+        by: ['id_tipo'],
         _count: true,
         where: {
-          SLOT_DISPONIBILE: {
-            dataOraInizio: {
-              gte: new Date(startDate),
-              lte: new Date(endDate)
-            }
+          dataoranizio: {
+            gte: new Date(startDate),
+            lte: new Date(endDate)
           }
         }
       })
@@ -278,8 +403,12 @@ export const getStatistics = async (req, res, next) => {
 
     res.json({
       roomOccupancy,
-      surgeryDurations,
-      doctorSuccess,
+      surgeryDurations: surgeryDurations.map(surgery => ({
+        id: surgery.id_intervento,
+        actualDuration: Math.round((new Date(surgery.dataorafine) - new Date(surgery.dataoranizio)) / 1000 / 60),
+        estimatedDuration: surgery.tipo_intervento.durata
+      })),
+      doctorStats,
       yearlyStats
     });
   } catch (error) {
