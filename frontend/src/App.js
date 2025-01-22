@@ -4,7 +4,8 @@ import { DoctorDashboard } from './pages/DoctorDashboard';
 import { Layout } from './components/Layout';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
-import { Home } from './pages/Home';
+import { DashboardRedirect } from './pages/Home';
+import HomePage from './pages/HomePage';
 import { PatientDashboard } from './pages/PatientDashboard';
 import { AdminDashboard } from './pages/AdminDashboard';
 
@@ -63,7 +64,8 @@ function App() {
             {/* Public Routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={<HomePage />} />
+            <Route path="/dashboard" element={<DashboardRedirect />} />
             
             {/* Patient Routes */}
             <Route 
@@ -75,7 +77,7 @@ function App() {
               } 
             />
 
-            {/* Doctor Routes - To be implemented */}
+            {/* Doctor Routes */}
             <Route 
               path="/doctor/dashboard" 
               element={
@@ -85,7 +87,7 @@ function App() {
               } 
             />
 
-            {/* Admin Routes - To be implemented */}
+            {/* Admin Routes */}
             <Route 
               path="/admin/dashboard" 
               element={

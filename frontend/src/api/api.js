@@ -36,7 +36,7 @@ export const api = {
   },
   public: {
     getDoctors: async () => {
-      const response = await fetch(`${API_URL}/api/public/doctor`);
+      const response = await fetch(`${API_URL}/api/public/doctors`);
       if (!response.ok) throw new Error('Failed to fetch doctor');
       return response.json();
     },

@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
-export const Home = () => {
+export const DashboardRedirect = () => {
   const { user, isAdmin, isPatient, isDoctor } = useAuth();
   const navigate = useNavigate();
 
@@ -24,7 +24,7 @@ export const Home = () => {
       return;
     }
     navigate('/login');
-    }, [user, navigate, isAdmin, isDoctor, isPatient]);
+  }, [user, navigate, isAdmin, isDoctor, isPatient]);
 
   return (
     <div className="flex justify-center items-center h-64">
