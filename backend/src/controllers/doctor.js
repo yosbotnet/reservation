@@ -1,6 +1,6 @@
 import { prisma } from '../index.js';
 
-export const setWeeklyAvailability = async (req, res, next) => {
+export const setWeeklySchedule = async (req, res, next) => {
   const { cf_dottore, availabilities } = req.body;
 
   try {
@@ -27,8 +27,8 @@ export const setWeeklyAvailability = async (req, res, next) => {
         data: availabilities.map(avail => ({
           cf: cf_dottore,
           giornodellaSettimana: avail.giorno.toLowerCase(),
-          orainizio: avail.orainizio,
-          orafine: avail.orafine
+          orainizio: `1970-01-01T${avail.orainizio}Z`,
+          orafine: `1970-01-01T${avail.orafine}Z`
         }))
       });
 
@@ -146,12 +146,12 @@ export const getSchedule = async (req, res, next) => {
 };
 
 export const updateVisitOutcome = async (req, res, next) => {
-  const { id_visita } = req.params;
+  const { visitId } = req.params;
   const { motivo } = req.body;
 
   try {
     const visit = await prisma.visita.update({
-      where: { id_visita: parseInt(id_visita) },
+      where: { id_visita: parseInt(visitId) },
       data: {
         motivo
       }

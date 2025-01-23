@@ -81,14 +81,6 @@ export const visitOutcomeValidation = [
   param('visitId')
     .isInt({ min: 1 })
     .withMessage('Invalid visit ID'),
-  body('diagnosi')
-    .isString()
-    .trim()
-    .notEmpty()
-    .withMessage('Diagnosis is required'),
-  body('stato')
-    .isIn(['COMPLETATA', 'CANCELLATA'])
-    .withMessage('Invalid visit status'),
   validate
 ];
 

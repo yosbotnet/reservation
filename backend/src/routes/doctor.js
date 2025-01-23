@@ -1,6 +1,6 @@
 import express from 'express';
 import {
-  setWeeklyAvailability,
+  setWeeklySchedule,
   getSchedule,
   updateVisitOutcome,
   scheduleSurgery,
@@ -23,9 +23,8 @@ router.use(requireRole(['dottore']));
 
 // Set weekly availability
 router.post(
-  '/availability/weekly',
-  weeklyAvailabilityValidation,
-  setWeeklyAvailability
+  '/:dottoreId/schedule',
+  setWeeklySchedule
 );
 
 // Register unavailability period
