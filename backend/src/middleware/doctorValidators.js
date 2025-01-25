@@ -85,21 +85,18 @@ export const visitOutcomeValidation = [
 ];
 
 export const surgeryScheduleValidation = [
-  body('pazienteId')
+  body('cf_paziente')
     .matches(/^[A-Z0-9]{16}$/)
     .withMessage('Invalid fiscal code format'),
-  body('dottoreId')
-    .matches(/^[A-Z0-9]{10}$/)
+  body('cf_dottore')
+    .matches(/^[A-Z0-9]{16}$/)
     .withMessage('Invalid doctor registration number format'),
-  body('tipoInterventoId')
+  body('tipo_id')
     .isInt({ min: 1 })
     .withMessage('Invalid surgery type ID'),
-  body('salaOperatoriaId')
-    .matches(/^[A-Z0-9]{10}$/)
-    .withMessage('Invalid operating room code format'),
-  body('slotId')
+  body('sala_id')
     .isInt({ min: 1 })
-    .withMessage('Invalid slot ID'),
+    .withMessage('Invalid operating room code format'),
   body('note')
     .optional()
     .isString()

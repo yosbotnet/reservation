@@ -82,7 +82,7 @@ const HomePage = () => {
             </div>
             <div className="hidden md:block">
               <img 
-                src="/api/placeholder/600/400" 
+                src="/team.jpg" 
                 alt="Team Medico" 
                 className="rounded-lg shadow-xl"
               />
@@ -136,7 +136,7 @@ const HomePage = () => {
               <Card key={index} className="hover:shadow-lg transition-shadow">
                 <CardContent className="p-6">
                   <img 
-                    src={doctor.image || "/api/placeholder/300/300"} 
+                    src={doctor.image || "/default_doctor.jpg"} 
                     alt={doctor.nome}
                     className="w-32 h-32 rounded-full mx-auto mb-4 object-cover"
                   />
@@ -144,7 +144,7 @@ const HomePage = () => {
                   <p className="text-blue-600 text-center mb-4">{doctor.specializzazione}</p>
                   <div className="space-y-2">
                     <p className="text-sm text-gray-600">
-                      <strong>N° Iscrizione:</strong> {doctor.cf}
+                      <strong>N° Registrazione:</strong> {doctor.numeroregistrazione}
                     </p>
                     <p className="text-sm text-gray-600">
                       <strong>Specializzazioni:</strong> {doctor.specializzazioni?.join(", ")}

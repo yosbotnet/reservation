@@ -21,7 +21,16 @@ export const register = async (req, res, next) => {
     iban,
     specializzazioni,
   } = req.body;
-
+  const bloodTypesMap = new Map([
+    ['A_', 'A+'],
+    ['A_MINUS', 'A-'],
+    ['B_', 'B+'],
+    ['B_MINUS', 'B-'],
+    ['AB_', 'AB+'],
+    ['AB_MINUS', 'AB-'],
+    ['ZERO_', 'O+'],
+    ['ZERO_MINUS', 'O-']
+  ]);
   try {
     // Hash password
     const hashedPassword = await bcrypt.hash(
@@ -50,7 +59,7 @@ export const register = async (req, res, next) => {
         const paziente = await prisma.paziente.create({
           data: {
             cf: user.cf,
-            grupposanguigno,
+            grupposanguigno: grupposanguigno,
           },
         });
 

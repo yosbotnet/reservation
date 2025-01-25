@@ -15,10 +15,10 @@ export const api = {
       // Transform fields to match schema
       const transformedData = {
         ...userData,
-        tipoutente: userData.ruolo?.toLowerCase(),
-        cf: userData.codiceFiscale,
-        datanascita: userData.dataNascita,
-        grupposanguigno: userData.gruppoSanguigno,
+        tipoutente: userData.tipoutente?.toLowerCase(),
+        cf: userData.cf,
+        datanascita: userData.datanascita,
+        grupposanguigno: userData.grupposanguigno,
       };
       delete transformedData.ruolo;
       delete transformedData.codiceFiscale;

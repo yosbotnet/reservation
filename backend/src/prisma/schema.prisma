@@ -216,14 +216,14 @@ enum orariodilavoro_giornodellaSettimana {
 }
 
 enum paziente_grupposanguigno {
-  A_plus     @map("A+")
-  A_minus    @map("A-")
-  B_plus     @map("B+")
-  B_minus    @map("B-")
-  AB_plus    @map("AB+")
-  AB_minus   @map("AB-")
-  zero_plus  @map("0+")
-  zero_minus @map("0-")
+  A_     @map("A+")
+  A_MINUS    @map("A-")
+  B_     @map("B+")
+  B_MINUS    @map("B-")
+  AB_    @map("AB+")
+  AB_MINUS   @map("AB-")
+  ZERO_  @map("0+")
+  ZERO_MINUS @map("0-")
 }
 
 enum tipo_intervento_complessita {

@@ -5,6 +5,7 @@ import { LoadingSpinner } from '../components/LoadingSpinner';
 
 export const Register = () => {
   const [formData, setFormData] = useState({
+    username: '',
     nome: '',
     cognome: '',
     cf: '',
@@ -13,6 +14,7 @@ export const Register = () => {
     telefono: '',
     grupposanguigno: '',
     password: '',
+    tipoutente: 'paziente',
     confirmPassword: ''
   });
   const [allergies, setAllergies] = useState([]);
@@ -22,14 +24,14 @@ export const Register = () => {
   const navigate = useNavigate();
 
   const bloodTypes = [
-    { value: 'A+', label: 'A+' },
-    { value: 'A-', label: 'A-' },
-    { value: 'B+', label: 'B+' },
-    { value: 'B-', label: 'B-' },
-    { value: 'AB+', label: 'AB+' },
-    { value: 'AB-', label: 'AB-' },
-    { value: '0+', label: 'O+' },
-    { value: '0-', label: 'O-' }
+    { value: 'A_', label: 'A+' },
+    { value: 'A_MINUS', label: 'A-' },
+    { value: 'B_', label: 'B+' },
+    { value: 'B_MINUS', label: 'B-' },
+    { value: 'AB_', label: 'AB+' },
+    { value: 'AB_MINUS', label: 'AB-' },
+    { value: 'ZERO_', label: 'O+' },
+    { value: 'ZERO_MINUS', label: 'O-' }
   ];
 
   useEffect(() => {
@@ -58,9 +60,10 @@ export const Register = () => {
 
     try {
       const registrationData = {
-        username: formData.email,
+        username: formData.username,
         password: formData.password,
         tipoutente: 'paziente',
+        email: formData.email,
         nome: formData.nome,
         cognome: formData.cognome,
         cf: formData.cf,
@@ -113,6 +116,18 @@ export const Register = () => {
           )}
 
           <div>
+            <label className="block text-sm font-medium text-gray-700">Username</label>
+            <input
+              type="text"
+              name="username"
+              required
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              value={formData.username}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div>
             <label className="block text-sm font-medium text-gray-700">Name</label>
             <input
               type="text"
@@ -124,6 +139,7 @@ export const Register = () => {
             />
           </div>
 
+          {/* Rest of the form fields remain the same */}
           <div>
             <label className="block text-sm font-medium text-gray-700">Surname</label>
             <input

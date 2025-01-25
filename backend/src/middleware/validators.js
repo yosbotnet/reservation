@@ -31,20 +31,20 @@ export const registerValidation = [
     .matches(/^\+?[\d\s-]{8,20}$/)
     .withMessage('Invalid phone number format'),
   // Conditional validation for paziente role
-  body('codiceFiscale')
+  body('cf')
     .if(body('tipoutente').equals('paziente'))
     .matches(/^[A-Z0-9]{16}$/)
     .withMessage('Invalid fiscal code format'),
-  body('dataNascita')
+  body('datanascita')
     .if(body('tipoutente').equals('paziente'))
     .isISO8601()
     .withMessage('Invalid date format'),
-  body('gruppoSanguigno')
+  body('grupposanguigno')
     .if(body('tipoutente').equals('paziente'))
     .isIn(['A_', 'A_MINUS', 'B_', 'B_MINUS', 'AB_', 'AB_MINUS', 'ZERO_', 'ZERO_MINUS'])
     .withMessage('Invalid blood type'),
   // Conditional validation for dottore role
-  body('numeroRegistrazione')
+  body('numeroregistrazione')
     .if(body('tipoutente').equals('dottore'))
     .matches(/^[A-Z0-9]{10}$/)
     .withMessage('Invalid registration number format'),
