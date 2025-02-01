@@ -2,7 +2,7 @@
   "version": 2,
   "builds": [
     {
-      "src": "src/index.js",
+      "src": "index.js",
       "use": "@vercel/node",
       "config": {
         "maxDuration": 10
@@ -12,7 +12,7 @@
   "routes": [
     {
       "src": "/health",
-      "dest": "src/index.js",
+      "dest": "index.js",
       "methods": ["GET"],
       "headers": {
         "Cache-Control": "no-cache"
@@ -20,14 +20,14 @@
     },
     {
       "src": "/api/public/(.*)",
-      "dest": "src/index.js",
+      "dest": "index.js",
       "headers": {
         "Cache-Control": "public, max-age=60, stale-while-revalidate=300"
       }
     },
     {
       "src": "/(.*)",
-      "dest": "src/index.js",
+      "dest": "index.js",
       "headers": {
         "Access-Control-Allow-Credentials": "true",
         "Access-Control-Allow-Methods": "GET,OPTIONS,PATCH,DELETE,POST,PUT",
