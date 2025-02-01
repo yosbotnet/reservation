@@ -32,21 +32,18 @@ router.post(
 // Get doctor's schedule
 router.get(
   '/:dottoreId/schedule',
-  scheduleValidation,
   getSchedule
 );
 
 // Update visit outcome
 router.patch(
   '/visits/:visitId/outcome',
-  visitOutcomeValidation,
   updateVisitOutcome
 );
 
 // Schedule surgery
 router.post(
   '/surgeries',
-  surgeryScheduleValidation,
   scheduleSurgery
 );
 

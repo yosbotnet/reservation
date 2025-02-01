@@ -24,7 +24,6 @@ router.get('/doctors', getDoctors);
 // Get doctor's availability
 router.get(
   '/doctors/:doctorId/availability',
-  availabilityValidation,
   getDoctorAvailability
 );
 
@@ -38,7 +37,6 @@ router.post(
 // Get patient's appointments
 router.get(
   '/patients/:patientId/appointments',
-  patientAppointmentsValidation,
   getPatientAppointments
 );
 router.get('/allergies', getAllergies);
