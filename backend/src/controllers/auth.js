@@ -22,13 +22,13 @@ export const register = async (req, res, next) => {
     specializzazioni,
   } = req.body;
   const bloodTypesMap = new Map([
-    ['A_', 'A+'],
+    ['A_PLUS', 'A+'],
     ['A_MINUS', 'A-'],
-    ['B_', 'B+'],
+    ['B_PLUS', 'B+'],
     ['B_MINUS', 'B-'],
-    ['AB_', 'AB+'],
+    ['AB_PLUS', 'AB+'],
     ['AB_MINUS', 'AB-'],
-    ['ZERO_', 'O+'],
+    ['ZERO_PLUS', 'O+'],
     ['ZERO_MINUS', 'O-']
   ]);
   try {
