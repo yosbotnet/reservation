@@ -9,8 +9,8 @@
   "scripts": {
     "dev:frontend": "cd frontend && npm run start",
     "dev:backend": "cd backend && npm run dev",
-    "build": "cd frontend && npm run build",
-    "postinstall": "prisma generate --schema=/backend/src/prisma/schema.prisma",
+    "build": "cd backend && npm run build",
+    "postinstall": "prisma generate --schema=backend/src/prisma/schema.prisma",
     "start": "cd backend && npm start",
     "install:all": "npm install && cd frontend && npm install && cd ../backend && npm install"
   }
