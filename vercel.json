@@ -1,8 +1,12 @@
 {
   "version": 2,
-  "buildCommand": "npm run install:all && npm run build",
+  "buildCommand": "echo 'this is the right command' && npm run install:all && npm run build",
   "outputDirectory": "frontend/build",
   "rewrites": [
+    {
+      "source": "/health",
+      "destination": "/backend/src/"
+    },
     {
       "source": "/api/public/:path*",
       "destination": "/backend/src/index.js"
