@@ -2,24 +2,6 @@
   "name": "frontend",
   "version": "0.1.0",
   "private": true,
-  "dependencies": {
-    "@fullcalendar/core": "^6.1.15",
-    "@fullcalendar/daygrid": "^6.1.15",
-    "@fullcalendar/interaction": "^6.1.15",
-    "@fullcalendar/react": "^6.1.15",
-    "@fullcalendar/timegrid": "^6.1.15",
-    "@headlessui/react": "^2.2.0",
-    "@tanstack/react-query": "^5.64.2",
-    "cra-template": "1.2.0",
-    "date-fns": "^4.1.0",
-    "lucide-react": "^0.473.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "react-scripts": "5.0.1",
-    "recharts": "^2.15.0",
-    "v0": "^2.2.5",
-    "web-vitals": "^4.2.4"
-  },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
@@ -44,11 +26,29 @@
       "last 1 safari version"
     ]
   },
+  "dependencies": {
+    "@fullcalendar/core": "^6.1.15",
+    "@fullcalendar/daygrid": "^6.1.15",
+    "@fullcalendar/interaction": "^6.1.15",
+    "@fullcalendar/react": "^6.1.15",
+    "@fullcalendar/timegrid": "^6.1.15",
+    "@headlessui/react": "^2.2.0",
+    "@tanstack/react-query": "^5.64.2",
+    "cra-template": "1.2.0",
+    "date-fns": "^4.1.0",
+    "lucide-react": "^0.473.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-router-dom": "^7.1.2",
+    "react-scripts": "5.0.1",
+    "recharts": "^2.15.0",
+    "v0": "^2.2.5",
+    "web-vitals": "^4.2.4"
+  },
   "devDependencies": {
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "autoprefixer": "^10.4.20",
     "postcss": "^8.5.1",
-    "react-router-dom": "^7.1.2",
     "tailwindcss": "^3.4.17"
   }
 }
