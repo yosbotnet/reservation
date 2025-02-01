@@ -12,7 +12,6 @@ export const PatientDashboard = () => {
   const [appointmentReason, setAppointmentReason] = useState('');
   const [surgeries, setSurgeries] = useState([]);
   const [selectedSurgery, setSelectedSurgery] = useState(null);
-  const [protocols, setProtocols] = useState([]);
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -154,14 +153,8 @@ export const PatientDashboard = () => {
     }
   };
   
-  const handleViewProtocols = async (surgeryId) => {
-    try {
-      const data = await api.public.getPostOperativeProtocols(surgeryId);
-      setProtocols(data);
-      setSelectedSurgery(surgeryId);
-    } catch (err) {
-      setError('Failed to load post-operative protocols');
-    }
+  const handleViewProtocols = (surgeryId) => {
+    setSelectedSurgery(surgeryId === selectedSurgery ? null : surgeryId);
   };
   
   if (loading) {
