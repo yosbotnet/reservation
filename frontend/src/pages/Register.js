@@ -24,13 +24,13 @@ export const Register = () => {
   const navigate = useNavigate();
 
   const bloodTypes = [
-    { value: 'A_', label: 'A+' },
+    { value: 'A_PLUS', label: 'A+' },
     { value: 'A_MINUS', label: 'A-' },
-    { value: 'B_', label: 'B+' },
+    { value: 'B_PLUS', label: 'B+' },
     { value: 'B_MINUS', label: 'B-' },
-    { value: 'AB_', label: 'AB+' },
+    { value: 'AB_PLUS', label: 'AB+' },
     { value: 'AB_MINUS', label: 'AB-' },
-    { value: 'ZERO_', label: 'O+' },
+    { value: 'ZERO_PLUS', label: 'O+' },
     { value: 'ZERO_MINUS', label: 'O-' }
   ];
 
