@@ -11,77 +11,123 @@
 \usepackage[italian]{babel}
 \usepackage[left=2.5cm,right=2.5cm,top=2.5cm,bottom=2.5cm]{geometry}
 
-% Title Page Information
-\title{{\Huge Surgical Clinic Management System}\\[1cm]
-       {\Large Database Course Project}}
-\author{Yosberto Baro Carbonell}
-\date{\today}
+% Rename table of contents
+\renewcommand{\contentsname}{Indice}
+
+\title{{\Huge Elaborato per il corso di Basi di Dati}\\[1cm]
+       {\Large A.A 2024/2025}\\[1cm]
+       {\Large Progetto di una base di dati per la gestione di una clinica chirurgica}}
+       
+\author{Yosberto Baro Carbonell\\[0.5cm]
+        yosberto.barocarbonell@studio.unibo.it\\
+        Matricola: 0001090988
+        }
+\date{}
 
 \begin{document}
 
 \maketitle
 
-\chapter*{Abstract}
-[Brief description of the project, its goals and main features]
-
 \tableofcontents
 
-\chapter{Introduction}
-\section{Project Overview}
-\section{Objectives}
-\section{Project Scope}
+\chapter{Analisi dei requisiti}
 
-\chapter{Requirements Analysis}
-\section{Interview and Requirements in Natural Language}
-\section{Ambiguity Analysis and Corrections}
-\section{Extraction of Core Concepts}
-\section{User Views Analysis}
-\subsection{Public Area}
-\subsection{Doctors' Area}
-\subsection{Administrative Area}
-\section{List of Main Operations}
+\section{Intervista}
+La seguente descrizione riporta in linguaggio naturale i requisiti per il nostro sistema informativo:
 
-\chapter{Conceptual Design}
-\section{Schema Development by Domain}
-\subsection{Patient Management}
-\subsection{Doctor Management}
-\subsection{Surgery Management}
-\subsection{Post-operative Care}
-\section{Views Integration}
-\section{Final Conceptual Schema}
+"Si vuole realizzare un sistema informatico di supporto alla gestione di una clinica chirurgica. Il sistema deve gestire tutte le attività relative alla programmazione degli interventi chirurgici, all'organizzazione delle operazioni e alla gestione delle cure post-operatorie, garantendo un'esperienza efficiente sia per i pazienti che per il personale medico.
 
-\chapter{Logical Design}
-\section{Data Volume Estimates}
-\section{Operation Frequency Analysis}
-\section{Navigation Schemas and Access Tables}
-\section{Schema Refinement}
-\section{Redundancy Analysis}
-\section{Translation to Relations}
-\section{Final Relational Schema}
+Il sistema prevede che ogni paziente debba registrarsi fornendo i propri dati personali (nome, cognome, codice fiscale, data di nascita, email, telefono) e le informazioni sanitarie di base come gruppo sanguigno e allergie. Una volta registrato, il paziente può richiedere una visita con un determinato dottore, scegliendo tra le date in cui il dottore è disponibile.
 
-\chapter{Physical Design}
-\section{Index Selection}
-\section{Attribute Ordering}
-\section{Implementation Considerations}
+La clinica impiega diversi dottori, ciascuno con le proprie specializzazioni. Ogni dottore ha un profilo (nome, cognome, numero di registrazione e aree di competenza) e gestisce il proprio calendario per indicare la disponibilità settimanale.
 
-\chapter{Application Design}
-\section{Architecture Description}
-\section{Interface Design}
-\subsection{Public Interface}
-\subsection{Doctor Interface}
-\subsection{Administrative Interface}
-\section{Key Features Implementation}
+Gli interventi chirurgici sono categorizzati per tipologia e complessità. Ogni tipo di intervento richiede risorse specifiche, come una sala operatoria e attrezzature specializzate, e ha una durata standard stimata. Dopo l'operazione, il sistema tiene traccia delle cure post-operatorie, inclusi i farmaci somministrati e le informazioni sulle attività da evitare.
 
-\chapter{Conclusions}
-\section{Project Summary}
-\section{Future Developments}
+Il sistema offre funzionalità diverse a seconda del tipo di utente:
 
-\appendix
-\chapter{SQL Code}
-\section{Database Creation Scripts}
-\section{Main Queries}
+Area Pubblica:
+- Registrazione nuovo account paziente
+- Richiesta visita con dottore specifico
+- Visualizzazione appuntamenti chirurgici
+- Visualizzazione protocolli post-operatori assegnati
 
-\chapter{Application Code Excerpts}
-\section{Key Implementation Details}
+Area Dottori:
+- Accettazione visite pazienti
+- Creazione appuntamento chirurgico
+- Gestione calendario disponibilità
+- Visualizzazione interventi programmati
+- Accesso informazioni pazienti assegnati
+
+Area Amministrativa:
+- Gestione anagrafica utenti
+- Gestione sale operatorie e attrezzature
+- Gestione catalogo interventi offerti
+- Gestione inventario attrezzature
+
+Il sistema deve inoltre fornire le seguenti informazioni:
+- Tasso di occupazione delle sale operatorie negli ultimi 3 mesi
+- Statistiche di confronto tra durate stimate ed effettive degli interventi
+- Numero di operazioni eseguite per tipologia nell'ultimo anno
+- Lista dei dottori con il maggior numero di interventi completati con successo"
+
+\section{Estrazione dei concetti principali}
+Dal testo dell'intervista possiamo estrarre i seguenti concetti principali:
+
+\begin{table}[H]
+\caption{Tabella dei concetti principali}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule
+\textbf{Termine} & \textbf{Descrizione} \\
+\midrule
+Paziente & Utente che si registra per ricevere cure mediche, caratterizzato da dati personali e informazioni sanitarie \\
+Dottore & Professionista medico con specializzazioni specifiche che esegue visite e interventi \\
+Visita & Appuntamento tra paziente e dottore che precede un possibile intervento \\
+Intervento & Operazione chirurgica programmata con specifiche risorse e tempistiche \\
+Sala Operatoria & Ambiente dove si svolgono gli interventi, dotato di attrezzature specifiche \\
+Attrezzatura & Strumenti e macchinari necessari per gli interventi \\
+Cura Post-operatoria & Protocollo di cure da seguire dopo l'intervento \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% Qui andrebbe inserito lo schema scheletro iniziale
+\begin{figure}[H]
+\caption{Schema scheletro iniziale delle entità principali}
+\centering
+% [INSERIRE IMMAGINE schema-scheletro.pdf]
+% Lo schema dovrebbe mostrare le entità principali (Paziente, Dottore, Intervento, Sala) 
+% e le loro relazioni fondamentali
+\end{figure}
+
+Prima di procedere con la progettazione dettagliata, è necessario evidenziare alcune ambiguità e vincoli non espressi nel testo:
+
+\begin{itemize}
+\item Il sistema di prenotazione delle visite deve considerare sovrapposizioni?
+\item Come gestire le priorità degli interventi?
+\item Come gestire le sostituzioni dei dottori in caso di emergenza?
+\item Quali sono i criteri per l'assegnazione delle sale operatorie?
+\item Come gestire le modifiche agli appuntamenti già programmati?
+\end{itemize}
+
+Queste ambiguità verranno risolte durante la fase di progettazione, implementando opportuni vincoli nel database.
+
+\chapter{Progettazione concettuale} 
+\section{Schema scheletro}
+\section{Raffinamenti proposti}
+\section{Schema concettuale finale}
+
+\chapter{Progettazione logica}
+\section{Stima del volume dei dati}
+\section{Descrizione delle operazioni principali e stima della loro frequenza}
+\section{Schemi di navigazione e tabelle degli accessi}
+\section{Analisi delle ridondanze}
+\section{Raffinamento dello schema}
+\section{Traduzione di entità e associazioni in relazioni}
+\section{Schema relazionale finale}
+\section{Traduzione delle operazioni in query SQL}
+
+\chapter{Progettazione dell'applicazione}
+\section{Descrizione dell'architettura dell'applicazione realizzata}
+\section{Screenshot dell'interfaccia utente}
 
 \end{document}
