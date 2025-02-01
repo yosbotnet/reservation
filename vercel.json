@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 2,
   "buildCommand": "npm run install:all && npm run build",
   "outputDirectory": "frontend/build",
   "rewrites": [
