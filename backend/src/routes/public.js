@@ -5,7 +5,10 @@ import {
   bookAppointment,
   getPatientAppointments,
   getAllergiesById,
-  getAllergies
+  getAllergies,
+  getPatientSurgeries,
+  getPostOperativeProtocols,
+  assignPostOperativeProtocols
 } from '../controllers/public.js';
 import {
   availabilityValidation,
@@ -40,5 +43,9 @@ router.get(
 );
 router.get('/allergies', getAllergies);
 router.get('/allergies/:patientId', getAllergiesById);
+
+router.get('/patients/:patientId/surgeries', getPatientSurgeries);
+router.get('/surgeries/:surgeryId/protocols', getPostOperativeProtocols);
+router.post('/surgeries/:surgeryId/protocols', assignPostOperativeProtocols);
 
 export default router;

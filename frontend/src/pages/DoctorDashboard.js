@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { useAuth } from '../contexts/AuthContext';
 import { api } from '../api/api';
@@ -27,18 +27,9 @@ export const DoctorDashboard = () => {
   const [error, setError] = useState('');
   const { user } = useAuth();
 
-  useEffect(() => {
-    if (activeTab === 'schedule') {
-      loadDoctorSchedule();
-    } else if (activeTab === 'appointments') {
-      loadAppointments();
-    } else if (activeTab === 'surgeries') {
-      loadSurgeryTypes();
-      loadOperatingRooms();
-    }
-  }, [activeTab]);
 
-  const loadDoctorSchedule = async () => {
+
+  const loadDoctorSchedule = useCallback(async () => {
     try {
       setLoading(true);
       const startDate = new Date();
@@ -52,7 +43,7 @@ export const DoctorDashboard = () => {
 
       // Transform visits and surgeries into FullCalendar events
       const events = [
-        ...response.visits.map(visit => ({
+        ...(response.visits || []).map(visit => ({
           id: `visit-${visit.id_visita}`,
           title: `Visit: ${visit.paziente.nome} ${visit.paziente.cognome}`,
           start: new Date(visit.dataora),
@@ -63,7 +54,7 @@ export const DoctorDashboard = () => {
             ...visit
           }
         })),
-        ...response.surgeries.map(surgery => ({
+        ...(response.surgeries || []).map(surgery => ({
           id: `surgery-${surgery.id_intervento}`,
           title: `Surgery: ${surgery.paziente.nome} ${surgery.paziente.cognome}`,
           start: new Date(surgery.dataoranizio),
@@ -82,9 +73,9 @@ export const DoctorDashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user.cf]);
 
-  const loadAppointments = async () => {
+  const loadAppointments = useCallback(async () => {
     try {
       setLoading(true);
       const startDate = new Date();
@@ -104,7 +95,7 @@ export const DoctorDashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user.cf]);
 
   const loadSurgeryTypes = async () => {
     try {
@@ -186,7 +177,18 @@ export const DoctorDashboard = () => {
       setLoading(false);
     }
   };
-
+  useEffect(() => {
+    const loadData = async () => {
+      if (activeTab === 'schedule') {
+        await loadDoctorSchedule();
+      } else if (activeTab === 'appointments') {
+        await loadAppointments();
+      } else if (activeTab === 'surgeries') {
+        await Promise.all([loadSurgeryTypes(), loadOperatingRooms()]);
+      }
+    };
+    loadData();
+  }, [activeTab, loadAppointments, loadDoctorSchedule]);
   if (loading && !activeTab) {
     return (
       <div className="h-64">

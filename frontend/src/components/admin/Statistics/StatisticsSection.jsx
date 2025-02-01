@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { api } from '../../../api/api';
-import { subMonths, format } from 'date-fns';
+import { subMonths, format, addMonths } from 'date-fns';
 import { RoomOccupancyChart } from './Charts/RoomOccupancyChart';
 import { DurationAnalysisChart } from './Charts/DurationAnalysisChart';
 import { DoctorPerformanceChart } from './Charts/DoctorPerformanceChart';
@@ -10,7 +10,7 @@ export const StatisticsSection = () => {
   const [stats, setStats] = useState(null);
   const [dateRange, setDateRange] = useState({
     startDate: subMonths(new Date(), 3),
-    endDate: new Date()
+    endDate: addMonths(new Date(),3),
   });
 
   useEffect(() => {

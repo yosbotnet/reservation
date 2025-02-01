@@ -151,6 +151,31 @@ export const api = {
       });
       if (!response.ok) throw new Error('Failed to book appointment');
       return response.json();
+    },
+    getPatientAppointments: async (patientId) => {
+      const response = await fetch(`${API_URL}/api/public/patients/${patientId}/appointments`);
+      if (!response.ok) throw new Error('Failed to fetch patient appointments');
+      return response.json();
+    },
+    // New API functions for Surgeries and Post-Operative Protocols
+    getPatientSurgeries: async (patientId) => {
+      const response = await fetch(`${API_URL}/api/public/patients/${patientId}/surgeries`);
+      if (!response.ok) throw new Error('Failed to fetch patient surgeries');
+      return response.json();
+    },
+    getPostOperativeProtocols: async (surgeryId) => {
+      const response = await fetch(`${API_URL}/api/public/surgeries/${surgeryId}/protocols`);
+      if (!response.ok) throw new Error('Failed to fetch post-operative protocols');
+      return response.json();
+    },
+    assignPostOperativeProtocols: async (surgeryId, protocols) => {
+      const response = await fetch(`${API_URL}/api/public/surgeries/${surgeryId}/protocols`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(protocols),
+      });
+      if (!response.ok) throw new Error('Failed to assign post-operative protocols');
+      return response.json();
     }
   },
   doctor: {
