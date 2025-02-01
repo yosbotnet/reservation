@@ -1,18 +1,27 @@
 {
-  "version": 2,
+  "version": 3,
   "buildCommand": "npm run install:all && npm run build",
   "outputDirectory": "frontend/build",
   "rewrites": [
     {
-      "source": "/api/(.*)",
+      "source": "/api/public/:path*",
+      "destination": "/backend/src/index.js"
+    },
+    {
+      "source": "/api/doctor/:path*",
+      "destination": "/backend/src/index.js"
+    },
+    {
+      "source": "/api/admin/:path*",
+      "destination": "/backend/src/index.js"
+    },
+    {
+      "source": "/auth/:path*",
       "destination": "/backend/src/index.js"
     },
     {
       "source": "/(.*)",
       "destination": "/frontend/build/$1"
     }
-  ],
-  "env": {
-    "NODE_ENV": "production"
-  }
+  ]
 }

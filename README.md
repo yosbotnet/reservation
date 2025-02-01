@@ -1,61 +1,49 @@
-# Medical Clinic Reservation System
+# Medical Clinic Management System
 
-A full-stack application for managing medical clinic reservations.
+## Vercel Deployment Guide
 
-## Project Structure
+### Backend Deployment
 
-```
-.
-├── frontend/         # React frontend application
-├── backend/         # Express.js backend API
-└── db/             # Database scripts and schemas
-```
+1. **Environment Setup**
+   - In your Vercel project settings, configure the following environment variables:
+     ```
+     DATABASE_URL=your_production_database_url
+     JWT_SECRET=your_secure_jwt_secret
+     NODE_ENV=production
+     FRONTEND_URL=your_frontend_url
+     ```
 
-## Development Setup
+2. **Database Configuration**
+   - Ensure your database is accessible from Vercel's serverless functions
+   - Use connection pooling for better performance
+   - Configure proper SSL if required by your database provider
 
-1. Install dependencies:
-```bash
-npm run install:all
-```
+3. **Deployment Steps**
+   - Connect your repository to Vercel
+   - Set the root directory to `/backend`
+   - Set the build command to `npm install`
+   - Set the output directory to `src`
+   - Deploy using the Vercel dashboard or CLI
 
-2. Set up environment variables:
-- Copy `backend/.env.example` to `backend/.env` and update the values
-- Frontend environment files are already set up for development and production
+4. **Post-Deployment**
+   - Verify the health endpoint is working: `https://your-api.vercel.app/health`
+   - Check CORS is properly configured with your frontend URL
+   - Monitor the Vercel logs for any connection issues
 
-3. Start development servers:
+### Performance Optimizations
 
-For frontend:
-```bash
-npm run dev:frontend
-```
+The backend is optimized for serverless deployment with:
+- Connection pooling for database
+- Proper CORS configuration
+- Caching headers for static responses
+- Security headers
+- Health check endpoint
+- Request timeout handling
 
-For backend:
-```bash
-npm run dev:backend
-```
+### Troubleshooting
 
-## Deployment on Vercel
-
-1. Push your code to a Git repository
-
-2. Create a new project on Vercel and link your repository
-
-3. Add the following environment variables in Vercel:
-   - `DATABASE_URL`: Your PostgreSQL database URL
-   - `JWT_SECRET`: Secret key for JWT token generation
-
-4. Deploy! Vercel will automatically:
-   - Build the frontend
-   - Set up the backend as serverless functions
-   - Handle routing between frontend and API
-
-## Environment Variables
-
-### Backend
-- `DATABASE_URL`: PostgreSQL database connection string
-- `JWT_SECRET`: Secret key for JWT tokens
-- `PORT`: Server port (default: 3000)
-
-### Frontend
-- Development: API calls go to `http://localhost:3000`
-- Production: API calls go to `/api` (handled by Vercel)
+If you encounter issues:
+1. Check Vercel deployment logs
+2. Verify environment variables are set correctly
+3. Ensure database is accessible from Vercel's network
+4. Monitor the health endpoint for database connectivity
