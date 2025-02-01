@@ -6,7 +6,7 @@ import {
   ManagementSection,
   StatisticsSection,
   UserManagementTable,
-  OperatingRoomTable,
+  RoomManagementTable,
   EquipmentTable,
   SurgeryTypeTable
 } from '../components/admin';
@@ -46,7 +46,7 @@ export const AdminDashboard = () => {
         )}
         {activeTab === 'rooms' && (
           <ManagementSection title="Operating Room Management">
-            <OperatingRoomTable />
+            <RoomManagementTable />
           </ManagementSection>
         )}
         {activeTab === 'equipment' && (

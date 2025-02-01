@@ -33,7 +33,7 @@ export const PatientDashboard = () => {
       // Process weekly schedule and existing appointments to determine available times
       const dayOfWeek = startDate.getDay();
       const daySchedule = availability.weeklySchedule.find(
-        schedule => schedule.giornodellaSettimana.toLowerCase() === 
+        schedule => schedule.giornodellasettimana.toLowerCase() === 
           ['domenica', 'lunedi', 'martedi', 'mercoledi', 'giovedi', 'venerdi', 'sabato'][dayOfWeek]
       );
 

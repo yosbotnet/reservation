@@ -43,10 +43,10 @@ CREATE TABLE dottore (
 -- Doctor's working hours - weak entity
 CREATE TABLE orariodilavoro (
     cf VARCHAR(16),
-    giornodellaSettimana ENUM('lunedi', 'martedi', 'mercoledi', 'giovedi', 'venerdi', 'sabato', 'domenica') NOT NULL,
+    giornodellasettimana ENUM('lunedi', 'martedi', 'mercoledi', 'giovedi', 'venerdi', 'sabato', 'domenica') NOT NULL,
     orainizio TIME NOT NULL,
     orafine TIME NOT NULL,
-    PRIMARY KEY (cf, giornodellaSettimana, orainizio),
+    PRIMARY KEY (cf, giornodellasettimana, orainizio),
     FOREIGN KEY (cf) REFERENCES dottore(cf)
         ON UPDATE CASCADE
         ON DELETE CASCADE,
@@ -226,4 +226,4 @@ CREATE TABLE daevitare (
 CREATE INDEX idx_utente_tipo ON utente(tipoutente);
 CREATE INDEX idx_intervento_data ON intervento(dataoranizio);
 CREATE INDEX idx_visita_data ON visita(dataora);
-CREATE INDEX idx_orari_giorno ON orariodilavoro(giornodellaSettimana);
+CREATE INDEX idx_orari_giorno ON orariodilavoro(giornodellasettimana);

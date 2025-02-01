@@ -135,7 +135,7 @@ export const bookAppointment = async (req, res, next) => {
     const doctorSchedule = await prisma.$queryRaw`
           SELECT * FROM orariodilavoro 
           WHERE cf = ${doctorId} 
-          AND giornodellaSettimana = ${dayOfWeek}
+          AND giornodellasettimana = ${dayOfWeek}
           AND orainizio <= ${timeOfDay}
           AND orafine >= ${timeOfDay}
         `;

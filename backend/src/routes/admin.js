@@ -12,6 +12,8 @@ import {
   updateEquipment,
   getSurgeryTypes,
   createSurgeryType,
+  updateSurgeryType,
+  deleteSurgeryType,
   getStatistics
 } from '../controllers/admin.js';
 import {
@@ -50,6 +52,8 @@ router.patch('/equipment/:id_attrezzatura', updateEquipmentValidation, updateEqu
 // Surgery Types Management
 router.get('/surgery-types', getSurgeryTypes);
 router.post('/surgery-types', surgeryTypeValidation, createSurgeryType);
+router.patch('/surgery-types/:id_tipo', surgeryTypeValidation, updateSurgeryType);
+router.delete('/surgery-types/:id_tipo', deleteSurgeryType);
 
 // Statistics
 router.get('/statistics', statisticsValidation, getStatistics);

@@ -96,9 +96,23 @@ export const api = {
       body: JSON.stringify({
         nome: typeData.nome,
         durata: parseInt(typeData.durata),
+        costo: parseFloat(typeData.costo),
         complessita: typeData.complessita.toLowerCase(),
         attrezzature: typeData.attrezzature?.map(Number)
       })
+    }),
+    updateSurgeryType: (id, typeData) => api.protected.request(`/api/admin/surgery-types/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({
+        nome: typeData.nome,
+        durata: parseInt(typeData.durata),
+        costo: parseFloat(typeData.costo),
+        complessita: typeData.complessita.toLowerCase(),
+        attrezzature: typeData.attrezzature?.map(Number)
+      })
+    }),
+    deleteSurgeryType: (id) => api.protected.request(`/api/admin/surgery-types/${id}`, {
+      method: 'DELETE'
     }),
 
     // Statistics
@@ -184,7 +198,7 @@ export const api = {
       const transformedData = {
         cf_dottore: scheduleData.dottoreId,
         availabilities: scheduleData.availabilities.map(avail => ({
-          giorno: avail.giornodellaSettimana.toLowerCase(),
+          giorno: avail.giornodellasettimana.toLowerCase(),
           orainizio: avail.orainizio,
           orafine: avail.orafine
         }))

@@ -83,14 +83,6 @@ export const equipmentValidation = [
     .trim()
     .isLength({ min: 2, max: 100 })
     .withMessage('Name must be between 2 and 100 characters'),
-  body('stato')
-    .optional()
-    .isIn(['DISPONIBILE', 'IN_USO', 'MANUTENZIONE'])
-    .withMessage('Invalid equipment status'),
-  body('ultimaManutenzione')
-    .optional()
-    .isISO8601()
-    .withMessage('Invalid maintenance date format'),
   validate
 ];
 
@@ -110,13 +102,12 @@ export const surgeryTypeValidation = [
   body('durata')
     .isInt({ min: 1 })
     .withMessage('Duration must be a positive integer'),
-  body('descrizione')
-    .optional()
-    .isString()
-    .withMessage('Description must be a string'),
+  body('costo')
+    .isFloat({ min: 0 })
+    .withMessage('Cost must be a positive number'),
   body('complessita')
-    .isIn(['BASSA', 'MEDIA', 'ALTA'])
-    .withMessage('Complexity must be one of: BASSA, MEDIA, ALTA'),
+    .isIn(['bassa', 'media', 'alta'])
+    .withMessage('Complexity must be one of: bassa, media, alta'),
   body('attrezzature')
     .optional()
     .isArray()

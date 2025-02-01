@@ -1,38 +1,55 @@
 import { useState, useEffect } from 'react';
 import { api } from '../../../api/api.js';
 
-export const OperatingRoomTable = () => {
+export const RoomManagementTable = () => {
   const [rooms, setRooms] = useState([]);
+  const [equipment, setEquipment] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editRoom, setEditRoom] = useState(null);
+  const [newRoomData, setNewRoomData] = useState({
+    nome: '',
+    attrezzature: []
+  });
 
   useEffect(() => {
-    const fetchRooms = async () => {
+    const fetchData = async () => {
       try {
-        const data = await api.admin.getRooms();
-        setRooms(data);
+        const [roomsData, equipmentData] = await Promise.all([
+          api.admin.getRooms(),
+          api.admin.getEquipment()
+        ]);
+        setRooms(roomsData);
+        setEquipment(equipmentData);
       } catch (err) {
         setError(err.message);
       } finally {
         setLoading(false);
       }
     };
-    fetchRooms();
+    fetchData();
   }, []);
 
-  const handleSubmit = async (roomData) => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     try {
       if (editRoom) {
-        const updatedRoom = await api.admin.updateRoom(editRoom.codice, roomData);
-        setRooms(rooms.map(r => r.codice === updatedRoom.codice ? updatedRoom : r));
+        await api.admin.updateRoom(editRoom.id_sala, {
+          nome: editRoom.nome,
+          attrezzature: editRoom.attrezzature || []
+        });
       } else {
-        const newRoom = await api.admin.createRoom(roomData);
-        setRooms([...rooms, newRoom]);
+        await api.admin.createRoom({
+          nome: newRoomData.nome,
+          attrezzature: newRoomData.attrezzature
+        });
       }
       setIsModalOpen(false);
       setEditRoom(null);
+      // Refresh data
+      const data = await api.admin.getRooms();
+      setRooms(data);
     } catch (err) {
       setError(err.message);
     }
@@ -42,7 +59,7 @@ export const OperatingRoomTable = () => {
   if (error) return <div className="p-4 text-red-500">Error: {error}</div>;
 
   return (
-    <div className="overflow-x-auto">
+    <div>
       <div className="mb-4">
         <button
           onClick={() => {
@@ -57,29 +74,19 @@ export const OperatingRoomTable = () => {
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Code</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Equipment</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
           {rooms.map((room) => (
-            <tr key={room.codice}>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{room.codice}</td>
+            <tr key={room.id_sala}>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{room.id_sala}</td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{room.nome}</td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {room.attrezzatureFisse?.join(', ')}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                  room.disponibile
-                    ? 'bg-green-100 text-green-800'
-                    : 'bg-red-100 text-red-800'
-                }`}>
-                  {room.disponibile ? 'Available' : 'In Use'}
-                </span>
+                {room.attrezzatureFisse?.join(', ') || 'None'}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                 <button
@@ -103,54 +110,53 @@ export const OperatingRoomTable = () => {
             <h3 className="text-lg font-medium mb-4">
               {editRoom ? 'Edit Operating Room' : 'Add New Operating Room'}
             </h3>
-            <form onSubmit={(e) => {
-              e.preventDefault();
-              const formData = new FormData(e.target);
-              const data = Object.fromEntries(formData);
-              data.attrezzatureFisse = data.attrezzatureFisse.split(',').map(item => item.trim());
-              data.disponibile = data.disponibile === 'true';
-              handleSubmit(data);
-            }}>
+            <form onSubmit={handleSubmit}>
               <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Room Code</label>
-                  <input
-                    type="text"
-                    name="codice"
-                    defaultValue={editRoom?.codice}
-                    required
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                  />
-                </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Room Name</label>
                   <input
                     type="text"
-                    name="nome"
-                    defaultValue={editRoom?.nome}
+                    value={editRoom ? editRoom.nome : newRoomData.nome}
+                    onChange={(e) => {
+                      if (editRoom) {
+                        setEditRoom({...editRoom, nome: e.target.value});
+                      } else {
+                        setNewRoomData({...newRoomData, nome: e.target.value});
+                      }
+                    }}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                     required
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Fixed Equipment (comma-separated)</label>
-                  <input
-                    type="text"
-                    name="attrezzatureFisse"
-                    defaultValue={editRoom?.attrezzatureFisse?.join(', ')}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Status</label>
-                  <select
-                    name="disponibile"
-                    defaultValue={editRoom?.disponibile?.toString() || 'true'}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                  >
-                    <option value="true">Available</option>
-                    <option value="false">In Use</option>
-                  </select>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Equipment (Hold Ctrl/Cmd to select multiple)
+                  </label>
+                  <div className="relative">
+                    <select
+                      multiple
+                      value={editRoom ? editRoom.attrezzature || [] : newRoomData.attrezzature}
+                      onChange={(e) => {
+                        const selectedEquipment = Array.from(e.target.selectedOptions, option => parseInt(option.value));
+                        if (editRoom) {
+                          setEditRoom({...editRoom, attrezzature: selectedEquipment});
+                        } else {
+                          setNewRoomData({...newRoomData, attrezzature: selectedEquipment});
+                        }
+                      }}
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 min-h-[120px]"
+                      size="6"
+                    >
+                      {equipment.map((item) => (
+                        <option key={item.id_attrezzatura} value={item.id_attrezzatura}>
+                          {item.nome}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <p className="mt-1 text-sm text-gray-500">
+                    Selected: {(editRoom ? editRoom.attrezzature : newRoomData.attrezzature)?.length || 0} items
+                  </p>
                 </div>
               </div>
               <div className="mt-6 flex justify-end space-x-3">
@@ -159,6 +165,7 @@ export const OperatingRoomTable = () => {
                   onClick={() => {
                     setIsModalOpen(false);
                     setEditRoom(null);
+                    setNewRoomData({nome: '', attrezzature: []});
                   }}
                   className="px-4 py-2 border rounded-md text-gray-600 hover:bg-gray-50"
                 >

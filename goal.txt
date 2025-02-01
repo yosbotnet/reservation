@@ -14,10 +14,10 @@ Doctors' Area:
 * View scheduled surgeries X
 * Access assigned patient information X
 Administrative Area:
-* User registry management P
+* User registry management x
 * Operating room and equipment management P
 * Management of offered procedures catalog P
-* Equipment inventory management P
+* Equipment inventory management X
 Information provided by the system:
 * Operating room occupancy rate in the last 3 months XT
 * Statistics comparing actual vs. estimated procedure durations XT

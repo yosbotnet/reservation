@@ -32,7 +32,7 @@ export const dbScheduleToBusinessHours = (schedule) => {
   if (!schedule || !Array.isArray(schedule)) return [];
 
   return schedule.map(slot => ({
-    dow: [DAYS_MAP[slot.giornodellaSettimana.toLowerCase()]],
+    dow: [DAYS_MAP[slot.giornodellasettimana.toLowerCase()]],
     startTime: formatTime(slot.orainizio),
     endTime: formatTime(slot.orafine)
   }));
@@ -43,7 +43,7 @@ export const businessHoursToDbSchedule = (businessHours, doctorId) => {
 
   return businessHours.map(hours => ({
     cf: doctorId,
-    giornodellaSettimana: DAYS_MAP_REVERSE[hours.dow[0]],
+    giornodellasettimana: DAYS_MAP_REVERSE[hours.dow[0]],
     orainizio: hours.startTime + ':00',
     orafine: hours.endTime + ':00'
   }));

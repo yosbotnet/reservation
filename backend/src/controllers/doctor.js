@@ -26,7 +26,7 @@ export const setWeeklySchedule = async (req, res, next) => {
       const created = await prisma.orariodilavoro.createMany({
         data: availabilities.map(avail => ({
           cf: cf_dottore,
-          giornodellaSettimana: avail.giorno.toLowerCase(),
+          giornodellasettimana: avail.giorno.toLowerCase(),
           orainizio: `1970-01-01T${avail.orainizio}Z`,
           orafine: `1970-01-01T${avail.orafine}Z`
         }))

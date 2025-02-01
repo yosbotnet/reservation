@@ -32,7 +32,7 @@ VALUES
 ('BNCLSN84M01Z404C', 2);
 
 -- Orari di lavoro dottore
-INSERT INTO orariodilavoro (cf, giornodellaSettimana, orainizio, orafine)
+INSERT INTO orariodilavoro (cf, giornodellasettimana, orainizio, orafine)
 VALUES
 ('BNCLSN84M01Z404C', 'lunedi', '09:00:00', '13:00:00'),
 ('BNCLSN84M01Z404C', 'mercoledi', '14:00:00', '18:00:00'),

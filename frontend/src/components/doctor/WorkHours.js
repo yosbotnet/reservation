@@ -9,7 +9,7 @@ export const WorkHours = ({ isOpen, onClose, schedule, onSave }) => {
   useEffect(() => {
     if (schedule) {
       const initialHours = DAYS.map(day => {
-        const daySchedule = schedule.find(s => s.giornodellaSettimana === day);
+        const daySchedule = schedule.find(s => s.giornodellasettimana === day);
         return {
           day,
           enabled: !!daySchedule,
@@ -25,7 +25,7 @@ export const WorkHours = ({ isOpen, onClose, schedule, onSave }) => {
     const newSchedule = workHours
       .filter(hours => hours.enabled)
       .map(hours => ({
-        giornodellaSettimana: hours.day,
+        giornodellasettimana: hours.day,
         orainizio: hours.start + ':00',
         orafine: hours.end + ':00'
       }));

@@ -2,21 +2,21 @@ import { body, param, query } from 'express-validator';
 import { validate } from './validators.js';
 
 export const weeklyAvailabilityValidation = [
-  body('dottoreId')
-    .matches(/^[A-Z0-9]{10}$/)
-    .withMessage('Invalid doctor registration number format'),
+  body('cf_dottore')
+    .matches(/^[A-Z0-9]{16}$/)
+    .withMessage('Invalid fiscal code format'),
   body('availabilities')
     .isArray()
     .withMessage('Availabilities must be an array')
     .notEmpty()
     .withMessage('At least one availability must be provided'),
-  body('availabilities.*.giorno')
-    .isIn(['LUN', 'MAR', 'MER', 'GIO', 'VEN', 'SAB', 'DOM'])
+  body('availabilities.*.giornodellasettimana')
+    .isIn(['lunedi', 'martedi', 'mercoledi', 'giovedi', 'venerdi', 'sabato', 'domenica'])
     .withMessage('Invalid day of week'),
-  body('availabilities.*.oraInizio')
+  body('availabilities.*.orainizio')
     .matches(/^([01]\d|2[0-3]):([0-5]\d):([0-5]\d)$/)
     .withMessage('Start time must be in HH:mm:ss format'),
-  body('availabilities.*.oraFine')
+  body('availabilities.*.orafine')
     .matches(/^([01]\d|2[0-3]):([0-5]\d):([0-5]\d)$/)
     .withMessage('End time must be in HH:mm:ss format')
     .custom((value, { req }) => {
@@ -30,34 +30,28 @@ export const weeklyAvailabilityValidation = [
 ];
 
 export const unavailabilityValidation = [
-  body('dottoreId')
-    .matches(/^[A-Z0-9]{10}$/)
-    .withMessage('Invalid doctor registration number format'),
-  body('dataInizio')
+  body('cf_dottore')
+    .matches(/^[A-Z0-9]{16}$/)
+    .withMessage('Invalid fiscal code format'),
+  body('dataoranizio')
     .isISO8601()
     .withMessage('Start date must be a valid ISO 8601 date/time'),
-  body('dataFine')
+  body('dataorafine')
     .isISO8601()
     .withMessage('End date must be a valid ISO 8601 date/time')
     .custom((value, { req }) => {
-      if (new Date(value) <= new Date(req.body.dataInizio)) {
+      if (new Date(value) <= new Date(req.body.dataoranizio)) {
         throw new Error('End date must be after start date');
       }
       return true;
     }),
-  body('motivo')
-    .optional()
-    .isString()
-    .trim()
-    .isLength({ max: 255 })
-    .withMessage('Reason cannot exceed 255 characters'),
   validate
 ];
 
 export const scheduleValidation = [
-  param('dottoreId')
+  param('cf_dottore')
     .matches(/^[A-Z0-9]{16}$/)
-    .withMessage('Invalid codice fiscale'),
+    .withMessage('Invalid fiscal code format'),
   query('startDate')
     .isISO8601()
     .withMessage('Start date must be a valid ISO 8601 date'),
@@ -91,17 +85,11 @@ export const surgeryScheduleValidation = [
   body('cf_dottore')
     .matches(/^[A-Z0-9]{16}$/)
     .withMessage('Invalid doctor registration number format'),
-  body('tipo_id')
+  body('id_tipo')
     .isInt({ min: 1 })
     .withMessage('Invalid surgery type ID'),
-  body('sala_id')
+  body('id_sala')
     .isInt({ min: 1 })
-    .withMessage('Invalid operating room code format'),
-  body('note')
-    .optional()
-    .isString()
-    .trim()
-    .isLength({ max: 1000 })
-    .withMessage('Notes cannot exceed 1000 characters'),
+    .withMessage('Invalid operating room ID'),
   validate
 ];

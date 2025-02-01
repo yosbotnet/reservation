@@ -286,9 +286,9 @@ export const getSurgeryTypes = async (req, res, next) => {
     const formattedTypes = types.map(type => ({
       id: type.id_tipo,
       nome: type.nome,
-      descrizione: type.descrizione,
-      durataStimata: type.durata,
+      durata: type.durata,
       complessita: type.complessita,
+      costo: parseFloat(type.costo),
       attrezzatureNecessarie: type.richiede_attrezzatura.map(r => r.attrezzatura)
     }));
     
@@ -299,7 +299,7 @@ export const getSurgeryTypes = async (req, res, next) => {
 };
 
 export const createSurgeryType = async (req, res, next) => {
-  const { nome, durata, descrizione, complessita, attrezzature } = req.body;
+  const { nome, durata, complessita, costo, attrezzature } = req.body;
 
   try {
     const surgeryType = await prisma.$transaction(async (prisma) => {
@@ -308,7 +308,7 @@ export const createSurgeryType = async (req, res, next) => {
           nome,
           durata,
           complessita,
-          costo: 0 // This should be calculated based on business logic
+          costo: parseFloat(costo)
         }
       });
 
@@ -325,6 +325,72 @@ export const createSurgeryType = async (req, res, next) => {
     });
 
     res.status(201).json(surgeryType);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateSurgeryType = async (req, res, next) => {
+  const { id_tipo } = req.params;
+  const { nome, durata, complessita, costo, attrezzature } = req.body;
+
+  try {
+    const surgeryType = await prisma.$transaction(async (prisma) => {
+      // Update surgery type
+      const type = await prisma.tipo_intervento.update({
+        where: { id_tipo: parseInt(id_tipo) },
+        data: {
+          nome,
+          durata,
+          complessita,
+          costo: parseFloat(costo)
+        }
+      });
+
+      // Update equipment if provided
+      if (attrezzature) {
+        // Remove existing equipment
+        await prisma.richiede_attrezzatura.deleteMany({
+          where: { id_tipo: parseInt(id_tipo) }
+        });
+
+        // Add new equipment
+        if (attrezzature.length) {
+          await prisma.richiede_attrezzatura.createMany({
+            data: attrezzature.map(attrezzaturaId => ({
+              id_tipo: type.id_tipo,
+              id_attrezzatura: attrezzaturaId
+            }))
+          });
+        }
+      }
+
+      return type;
+    });
+
+    res.json(surgeryType);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteSurgeryType = async (req, res, next) => {
+  const { id_tipo } = req.params;
+
+  try {
+    await prisma.$transaction(async (prisma) => {
+      // First delete all equipment requirements
+      await prisma.richiede_attrezzatura.deleteMany({
+        where: { id_tipo: parseInt(id_tipo) }
+      });
+
+      // Then delete the surgery type
+      await prisma.tipo_intervento.delete({
+        where: { id_tipo: parseInt(id_tipo) }
+      });
+    });
+
+    res.json({ message: 'Surgery type deleted successfully' });
   } catch (error) {
     next(error);
   }

@@ -23,10 +23,6 @@ export const registerValidation = [
     .trim()
     .isLength({ min: 2, max: 50 })
     .withMessage('Surname must be between 2 and 50 characters'),
-  body('email')
-    .isEmail()
-    .withMessage('Invalid email address')
-    .normalizeEmail(),
   body('telefono')
     .matches(/^\+?[\d\s-]{8,20}$/)
     .withMessage('Invalid phone number format'),
