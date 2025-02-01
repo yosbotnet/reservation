@@ -4,7 +4,8 @@
   "description": "Backend for Medical Clinic Management System",
   "main": "src/index.js",
   "scripts": {
-    "start": "npx prisma generate --schema=/prisma/schema.prisma && node src/index.js",
+    "start": "node src/index.js",
+    "postinstall": "prisma generate",
     "dev": "nodemon src/index.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate deploy"
