@@ -33,83 +33,80 @@
 \chapter{Analisi dei requisiti}
 
 \section{Intervista}
-La seguente descrizione riporta in linguaggio naturale i requisiti per il nostro sistema informativo:
+La clinica chirurgica WareMed© richiede un sistema informatico per la gestione delle attività relative alla programmazione e all'esecuzione degli interventi chirurgici. Il database di informazioni verrà acceduto sia dai pazienti, tramite un'area pubblica, sia dai dottori e dagli amministratori del sistema attraverso aree riservate. Il sistema deve poter memorizzare la lista degli utenti registrati, ciascuno dei quali avrà un proprio account associato a un profilo specifico.
 
-"Si vuole realizzare un sistema informatico di supporto alla gestione di una clinica chirurgica. Il sistema deve gestire tutte le attività relative alla programmazione degli interventi chirurgici, all'organizzazione delle operazioni e alla gestione delle cure post-operatorie, garantendo un'esperienza efficiente sia per i pazienti che per il personale medico.
+Un paziente deve innanzitutto registrarsi fornendo i propri dati anagrafici (nome, cognome, codice fiscale, data di nascita) e i recapiti (email, telefono), oltre alle informazioni sanitarie di base come gruppo sanguigno e allergie. Una volta registrato, il paziente può prenotare una visita con un determinato dottore, scegliendo tra le date disponibili nel calendario del medico.
 
-Il sistema prevede che ogni paziente debba registrarsi fornendo i propri dati personali (nome, cognome, codice fiscale, data di nascita, email, telefono) e le informazioni sanitarie di base come gruppo sanguigno e allergie. Una volta registrato, il paziente può richiedere una visita con un determinato dottore, scegliendo tra le date in cui il dottore è disponibile.
+Ogni dottore della clinica ha un proprio profilo professionale che include numero di registrazione all'albo e specializzazioni. Il dottore gestisce il proprio calendario settimanale indicando i giorni e gli orari in cui è disponibile per visite ed interventi. Durante una visita, il dottore può programmare un intervento chirurgico se necessario.
 
-La clinica impiega diversi dottori, ciascuno con le proprie specializzazioni. Ogni dottore ha un profilo (nome, cognome, numero di registrazione e aree di competenza) e gestisce il proprio calendario per indicare la disponibilità settimanale.
+Gli interventi sono classificati per tipologia e livello di complessità (bassa, media, alta). Ogni tipo di intervento ha requisiti specifici in termini di:
+\begin{itemize}
+\item Sala operatoria da utilizzare
+\item Attrezzature specialistiche necessarie
+\item Durata standard stimata
+\item Costo della procedura
+\end{itemize}
 
-Gli interventi chirurgici sono categorizzati per tipologia e complessità. Ogni tipo di intervento richiede risorse specifiche, come una sala operatoria e attrezzature specializzate, e ha una durata standard stimata. Dopo l'operazione, il sistema tiene traccia delle cure post-operatorie, inclusi i farmaci somministrati e le informazioni sulle attività da evitare.
-
-Il sistema offre funzionalità diverse a seconda del tipo di utente:
-
-Area Pubblica:
-- Registrazione nuovo account paziente
-- Richiesta visita con dottore specifico
-- Visualizzazione appuntamenti chirurgici
-- Visualizzazione protocolli post-operatori assegnati
-
-Area Dottori:
-- Accettazione visite pazienti
-- Creazione appuntamento chirurgico
-- Gestione calendario disponibilità
-- Visualizzazione interventi programmati
-- Accesso informazioni pazienti assegnati
-
-Area Amministrativa:
-- Gestione anagrafica utenti
-- Gestione sale operatorie e attrezzature
-- Gestione catalogo interventi offerti
-- Gestione inventario attrezzature
-
-Il sistema deve inoltre fornire le seguenti informazioni:
-- Tasso di occupazione delle sale operatorie negli ultimi 3 mesi
-- Statistiche di confronto tra durate stimate ed effettive degli interventi
-- Numero di operazioni eseguite per tipologia nell'ultimo anno
-- Lista dei dottori con il maggior numero di interventi completati con successo"
-
-\section{Estrazione dei concetti principali}
-Dal testo dell'intervista possiamo estrarre i seguenti concetti principali:
+Al termine di ogni intervento viene registrato l'esito e viene definito un protocollo post-operatorio che include:
+\begin{itemize}
+\item Farmaci da assumere con relative posologie
+\item Attività fisiche da evitare
+\item Controlli di follow-up da effettuare
+\end{itemize}
 
 \begin{table}[H]
-\caption{Tabella dei concetti principali}
-\begin{tabular}{p{3cm}p{12cm}}
+\caption{Rilevamento delle ambiguità e correzioni proposte}
+\begin{tabular}{p{3cm}p{6cm}p{6cm}}
 \toprule
-\textbf{Termine} & \textbf{Descrizione} \\
+\textbf{Riferimento} & \textbf{Ambiguità} & \textbf{Correzione} \\
 \midrule
-Paziente & Utente che si registra per ricevere cure mediche, caratterizzato da dati personali e informazioni sanitarie \\
-Dottore & Professionista medico con specializzazioni specifiche che esegue visite e interventi \\
-Visita & Appuntamento tra paziente e dottore che precede un possibile intervento \\
-Intervento & Operazione chirurgica programmata con specifiche risorse e tempistiche \\
-Sala Operatoria & Ambiente dove si svolgono gli interventi, dotato di attrezzature specifiche \\
-Attrezzatura & Strumenti e macchinari necessari per gli interventi \\
-Cura Post-operatoria & Protocollo di cure da seguire dopo l'intervento \\
+Disponibilità dottori & Non è specificato come gestire le sovrapposizioni di orari & Implementare un sistema di controllo che impedisca la sovrapposizione di appuntamenti per lo stesso dottore \\
+\midrule
+Prenotazione sale & Non è chiaro il criterio di assegnazione delle sale operatorie & Le sale vengono assegnate in base alla tipologia di intervento e alla disponibilità delle attrezzature necessarie \\
+\midrule
+Modifiche appuntamenti & Non è specificato come gestire cambi di data/ora & Permettere modifiche solo se non creano conflitti con altri appuntamenti già programmati \\
+\midrule
+Sostituzioni & Non è definita la gestione delle emergenze/sostituzioni & Implementare un sistema di reperibilità dei dottori per specializzazione \\
+\midrule
+Durata interventi & Non è specificato come gestire gli sforamenti temporali & Prevedere dei margini di sicurezza tra interventi consecutivi \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-% Qui andrebbe inserito lo schema scheletro iniziale
+\section{Estrazione dei concetti principali}
+A seguito della lettura e comprensione dei requisiti, si procede con l'estrazione dei concetti fondamentali e delle loro relazioni:
+
+\begin{table}[H]
+\caption{Glossario dei termini}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule
+\textbf{Termine} & \textbf{Descrizione} \\
+\midrule
+Utente & Entità base che rappresenta qualsiasi utilizzatore del sistema (paziente, dottore, amministratore) \\
+Paziente & Estensione di Utente che include informazioni sanitarie specifiche \\
+Dottore & Estensione di Utente con dati professionali e specializzazioni \\
+Visita & Consultazione medica preliminare all'eventuale intervento \\
+Intervento & Procedura chirurgica programmata con specifiche risorse e tempistiche \\
+Sala Operatoria & Ambiente attrezzato dove si svolgono gli interventi \\
+Attrezzatura & Strumentazione specialistica necessaria per gli interventi \\
+Farmaco & Medicinale prescritto nel protocollo post-operatorio \\
+Attività & Azione fisica da evitare durante la convalescenza \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 \begin{figure}[H]
-\caption{Schema scheletro iniziale delle entità principali}
+\caption{Schema scheletro iniziale}
 \centering
-% [INSERIRE IMMAGINE schema-scheletro.pdf]
-% Lo schema dovrebbe mostrare le entità principali (Paziente, Dottore, Intervento, Sala) 
-% e le loro relazioni fondamentali
+% [INSERIRE IMMAGINE schema-scheletro.png]
+% Diagramma E/R che mostra le entità principali e le loro relazioni:
+% - Utente (specializzato in Paziente, Dottore, Admin)
+% - Visita (collega Paziente e Dottore)
+% - Intervento (collega Paziente, Dottore e Sala)
+% - Protocollo post-operatorio
 \end{figure}
 
-Prima di procedere con la progettazione dettagliata, è necessario evidenziare alcune ambiguità e vincoli non espressi nel testo:
-
-\begin{itemize}
-\item Il sistema di prenotazione delle visite deve considerare sovrapposizioni?
-\item Come gestire le priorità degli interventi?
-\item Come gestire le sostituzioni dei dottori in caso di emergenza?
-\item Quali sono i criteri per l'assegnazione delle sale operatorie?
-\item Come gestire le modifiche agli appuntamenti già programmati?
-\end{itemize}
-
-Queste ambiguità verranno risolte durante la fase di progettazione, implementando opportuni vincoli nel database.
+Questo schema verrà raffinato nel capitolo successivo, aggiungendo attributi e vincoli specifici per ogni entità e relazione.
 
 \chapter{Progettazione concettuale} 
 \section{Schema scheletro}
