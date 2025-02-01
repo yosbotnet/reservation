@@ -3,82 +3,74 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
 model allergia {
-  id_allergia  Int      @default(autoincrement())
+  id_allergia  Int      @id @default(autoincrement())
   cf           String   @db.VarChar(16)
   nomeallergia String   @db.VarChar(100)
-  paziente     paziente @relation(fields: [cf], references: [cf], onDelete: Cascade, map: "allergia_ibfk_1")
-
-  @@id([id_allergia, cf])
-  @@index([cf], map: "cf")
+  paziente     paziente @relation(fields: [cf], references: [cf], onDelete: Cascade)
 }
 
 model attivita {
   id_attivita Int         @id @default(autoincrement())
-  nome        String      @unique(map: "nome") @db.VarChar(100)
+  nome        String      @unique @db.VarChar(100)
   daevitare   daevitare[]
 }
 
 model attrezzatura {
-  id_attrezzatura      Int                    @id @default(autoincrement())
-  nome                 String                 @unique(map: "nome") @db.VarChar(100)
-  contiene             contiene[]
+  id_attrezzatura       Int                     @id @default(autoincrement())
+  nome                  String                  @unique @db.VarChar(100)
+  contiene              contiene[]
   richiede_attrezzatura richiede_attrezzatura[]
 }
 
 model contiene {
   id_sala         Int
   id_attrezzatura Int
-  sala_operativa  sala_operativa @relation(fields: [id_sala], references: [id_sala], onDelete: Restrict, map: "contiene_ibfk_1")
-  attrezzatura    attrezzatura   @relation(fields: [id_attrezzatura], references: [id_attrezzatura], onDelete: Restrict, map: "contiene_ibfk_2")
+  attrezzatura    attrezzatura   @relation(fields: [id_attrezzatura], references: [id_attrezzatura], onDelete: NoAction)
+  sala_operativa  sala_operativa @relation(fields: [id_sala], references: [id_sala], onDelete: NoAction)
 
   @@id([id_sala, id_attrezzatura])
-  @@index([id_attrezzatura], map: "id_attrezzatura")
 }
 
 model cura_postoperativa {
   id_cura       Int          @id @default(autoincrement())
   id_intervento Int
   descrizione   String       @db.Text
-  intervento    intervento   @relation(fields: [id_intervento], references: [id_intervento], onDelete: Restrict, map: "cura_postoperativa_ibfk_1")
+  intervento    intervento   @relation(fields: [id_intervento], references: [id_intervento], onDelete: NoAction)
   daevitare     daevitare[]
   daprendere    daprendere[]
-
-  @@index([id_intervento], map: "id_intervento")
 }
 
 model daevitare {
   id_cura            Int
   id_attivita        Int
   perche             String             @db.Text
-  cura_postoperativa cura_postoperativa @relation(fields: [id_cura], references: [id_cura], onDelete: Cascade, map: "daevitare_ibfk_1")
-  attivita           attivita           @relation(fields: [id_attivita], references: [id_attivita], onDelete: Restrict, map: "daevitare_ibfk_2")
+  attivita           attivita           @relation(fields: [id_attivita], references: [id_attivita], onDelete: NoAction)
+  cura_postoperativa cura_postoperativa @relation(fields: [id_cura], references: [id_cura], onDelete: Cascade)
 
   @@id([id_cura, id_attivita])
-  @@index([id_attivita], map: "id_attivita")
 }
 
 model daprendere {
   id_cura            Int
   id_farmaco         Int
   frequenza          String             @db.VarChar(50)
-  cura_postoperativa cura_postoperativa @relation(fields: [id_cura], references: [id_cura], onDelete: Cascade, map: "daprendere_ibfk_1")
-  farmaco            farmaco            @relation(fields: [id_farmaco], references: [id_farmaco], onDelete: Restrict, map: "daprendere_ibfk_2")
+  cura_postoperativa cura_postoperativa @relation(fields: [id_cura], references: [id_cura], onDelete: Cascade)
+  farmaco            farmaco            @relation(fields: [id_farmaco], references: [id_farmaco], onDelete: NoAction)
 
   @@id([id_cura, id_farmaco])
-  @@index([id_farmaco], map: "id_farmaco")
 }
 
 model dottore {
   cf                  String             @id @db.VarChar(16)
-  numeroregistrazione String             @unique(map: "numeroregistrazione") @db.VarChar(20)
+  numeroregistrazione String             @unique @db.VarChar(20)
   dataassunzione      DateTime           @db.Date
   iban                String             @db.VarChar(34)
-  utente              utente             @relation(fields: [cf], references: [cf], onDelete: Restrict, map: "dottore_ibfk_1")
+  utente              utente             @relation(fields: [cf], references: [cf], onDelete: NoAction)
   intervento          intervento[]
   orariodilavoro      orariodilavoro[]
   specializzato_in    specializzato_in[]
@@ -87,7 +79,7 @@ model dottore {
 
 model farmaco {
   id_farmaco Int          @id @default(autoincrement())
-  nome       String       @unique(map: "nome") @db.VarChar(100)
+  nome       String       @unique @db.VarChar(100)
   daprendere daprendere[]
 }
 
@@ -97,55 +89,50 @@ model intervento {
   cf_dottore         String               @db.VarChar(16)
   id_tipo            Int
   id_sala            Int
-  dataoranizio      DateTime             @db.DateTime(0)
-  dataorafine        DateTime             @db.DateTime(0)
-  esito              intervento_esito     @default(programmato)
+  dataoranizio       DateTime             @db.Timestamp(6)
+  dataorafine        DateTime             @db.Timestamp(6)
+  esito              intervention_status  @default(programmato)
   cura_postoperativa cura_postoperativa[]
-  paziente           paziente             @relation(fields: [cf_paziente], references: [cf], onDelete: Restrict, map: "intervento_ibfk_1")
-  dottore            dottore              @relation(fields: [cf_dottore], references: [cf], onDelete: Restrict, map: "intervento_ibfk_2")
-  tipo_intervento    tipo_intervento      @relation(fields: [id_tipo], references: [id_tipo], onDelete: Restrict, map: "intervento_ibfk_3")
-  sala_operativa     sala_operativa       @relation(fields: [id_sala], references: [id_sala], onDelete: Restrict, map: "intervento_ibfk_4")
+  dottore            dottore              @relation(fields: [cf_dottore], references: [cf], onDelete: NoAction)
+  paziente           paziente             @relation(fields: [cf_paziente], references: [cf], onDelete: NoAction)
+  sala_operativa     sala_operativa       @relation(fields: [id_sala], references: [id_sala], onDelete: NoAction)
+  tipo_intervento    tipo_intervento      @relation(fields: [id_tipo], references: [id_tipo], onDelete: NoAction)
 
-  @@index([cf_dottore], map: "cf_dottore")
-  @@index([cf_paziente], map: "cf_paziente")
-  @@index([id_sala], map: "id_sala")
-  @@index([id_tipo], map: "id_tipo")
   @@index([dataoranizio], map: "idx_intervento_data")
 }
 
 model orariodilavoro {
-  cf                   String                              @db.VarChar(16)
-  giornodellaSettimana orariodilavoro_giornodellaSettimana
-  orainizio            DateTime                            @db.Time(0)
-  orafine              DateTime                            @db.Time(0)
-  dottore              dottore                             @relation(fields: [cf], references: [cf], onDelete: Cascade, map: "orariodilavoro_ibfk_1")
+  cf                   String   @db.VarChar(16)
+  giornodellasettimana weekday
+  orainizio            DateTime @db.Time(6)
+  orafine              DateTime @db.Time(6)
+  dottore              dottore  @relation(fields: [cf], references: [cf], onDelete: Cascade)
 
-  @@id([cf, giornodellaSettimana, orainizio])
-  @@index([giornodellaSettimana], map: "idx_orari_giorno")
+  @@id([cf, giornodellasettimana, orainizio])
+  @@index([giornodellasettimana], map: "idx_orari_giorno")
 }
 
 model paziente {
-  cf              String                   @id @db.VarChar(16)
-  grupposanguigno paziente_grupposanguigno
+  cf              String       @id @db.VarChar(16)
+  grupposanguigno blood_group
   allergia        allergia[]
   intervento      intervento[]
-  utente          utente                   @relation(fields: [cf], references: [cf], onDelete: Restrict, map: "paziente_ibfk_1")
+  utente          utente       @relation(fields: [cf], references: [cf], onDelete: NoAction)
   visita          visita[]
 }
 
 model richiede_attrezzatura {
   id_tipo         Int
   id_attrezzatura Int
-  tipo_intervento tipo_intervento @relation(fields: [id_tipo], references: [id_tipo], onDelete: Restrict, map: "richiede_attrezzatura_ibfk_1")
-  attrezzatura    attrezzatura    @relation(fields: [id_attrezzatura], references: [id_attrezzatura], onDelete: Restrict, map: "richiede_attrezzatura_ibfk_2")
+  attrezzatura    attrezzatura    @relation(fields: [id_attrezzatura], references: [id_attrezzatura], onDelete: NoAction)
+  tipo_intervento tipo_intervento @relation(fields: [id_tipo], references: [id_tipo], onDelete: NoAction)
 
   @@id([id_tipo, id_attrezzatura])
-  @@index([id_attrezzatura], map: "id_attrezzatura")
 }
 
 model sala_operativa {
   id_sala    Int          @id @default(autoincrement())
-  nome       String       @unique(map: "nome") @db.VarChar(50)
+  nome       String       @unique @db.VarChar(50)
   contiene   contiene[]
   intervento intervento[]
 }
@@ -153,38 +140,37 @@ model sala_operativa {
 model specializzato_in {
   cf                  String           @db.VarChar(16)
   id_specializzazione Int
-  dottore             dottore          @relation(fields: [cf], references: [cf], onDelete: Cascade, map: "specializzato_in_ibfk_1")
-  specializzazione    specializzazione @relation(fields: [id_specializzazione], references: [id_specializzazione], onDelete: Restrict, map: "specializzato_in_ibfk_2")
+  dottore             dottore          @relation(fields: [cf], references: [cf], onDelete: Cascade)
+  specializzazione    specializzazione @relation(fields: [id_specializzazione], references: [id_specializzazione], onDelete: NoAction)
 
   @@id([cf, id_specializzazione])
-  @@index([id_specializzazione], map: "id_specializzazione")
 }
 
 model specializzazione {
   id_specializzazione Int                @id @default(autoincrement())
-  nome                String             @unique(map: "nome") @db.VarChar(100)
+  nome                String             @unique @db.VarChar(100)
   specializzato_in    specializzato_in[]
 }
 
 model tipo_intervento {
-  id_tipo              Int                         @id @default(autoincrement())
-  nome                 String                      @unique(map: "nome") @db.VarChar(100)
-  complessita          tipo_intervento_complessita
-  durata               Int
-  costo                Decimal                     @db.Decimal(10, 2)
-  intervento           intervento[]
+  id_tipo               Int                     @id @default(autoincrement())
+  nome                  String                  @unique @db.VarChar(100)
+  complessita           complexity_level
+  durata                Int
+  costo                 Decimal                 @db.Decimal(10, 2)
+  intervento            intervento[]
   richiede_attrezzatura richiede_attrezzatura[]
 }
 
 model utente {
-  cf          String            @id @db.VarChar(16)
-  username    String            @unique(map: "username") @db.VarChar(50)
-  password    String            @db.VarChar(255)
-  nome        String            @db.VarChar(50)
-  cognome     String            @db.VarChar(50)
-  datanascita DateTime          @db.Date
-  telefono    String            @db.VarChar(20)
-  tipoutente  utente_tipoutente
+  cf          String    @id @db.VarChar(16)
+  username    String    @unique @db.VarChar(50)
+  password    String    @db.VarChar(255)
+  nome        String    @db.VarChar(50)
+  cognome     String    @db.VarChar(50)
+  datanascita DateTime  @db.Date
+  telefono    String    @db.VarChar(20)
+  tipoutente  user_type
   dottore     dottore?
   paziente    paziente?
 
@@ -195,17 +181,45 @@ model visita {
   id_visita   Int      @id @default(autoincrement())
   cf_paziente String   @db.VarChar(16)
   cf_dottore  String   @db.VarChar(16)
-  dataora     DateTime @db.DateTime(0)
+  dataora     DateTime @db.Timestamp(6)
   motivo      String   @db.Text
-  paziente    paziente @relation(fields: [cf_paziente], references: [cf], onDelete: Restrict, map: "visita_ibfk_1")
-  dottore     dottore  @relation(fields: [cf_dottore], references: [cf], onDelete: Restrict, map: "visita_ibfk_2")
+  dottore     dottore  @relation(fields: [cf_dottore], references: [cf], onDelete: NoAction)
+  paziente    paziente @relation(fields: [cf_paziente], references: [cf], onDelete: NoAction)
 
-  @@index([cf_dottore], map: "cf_dottore")
-  @@index([cf_paziente], map: "cf_paziente")
   @@index([dataora], map: "idx_visita_data")
 }
 
-enum orariodilavoro_giornodellaSettimana {
+enum blood_group {
+  A_PLUS     @map("A+")
+  A_MINUS    @map("A-")
+  B_PLUS     @map("B+")
+  B_MINUS    @map("B-")
+  AB_PLUS    @map("AB+")
+  AB_MINUS   @map("AB-")
+  ZERO_PLUS  @map("0+")
+  ZERO_MINUS @map("0-")
+}
+
+enum complexity_level {
+  bassa
+  media
+  alta
+}
+
+enum intervention_status {
+  programmato
+  in_corso
+  completato
+  annullato
+}
+
+enum user_type {
+  admin
+  dottore
+  paziente
+}
+
+enum weekday {
   lunedi
   martedi
   mercoledi
@@ -213,34 +227,4 @@ enum orariodilavoro_giornodellaSettimana {
   venerdi
   sabato
   domenica
-}
-
-enum paziente_grupposanguigno {
-  A_     @map("A+")
-  A_MINUS    @map("A-")
-  B_     @map("B+")
-  B_MINUS    @map("B-")
-  AB_    @map("AB+")
-  AB_MINUS   @map("AB-")
-  ZERO_  @map("0+")
-  ZERO_MINUS @map("0-")
-}
-
-enum tipo_intervento_complessita {
-  bassa
-  media
-  alta
-}
-
-enum intervento_esito {
-  programmato
-  in_corso    @map("in_corso")
-  completato
-  annullato
-}
-
-enum utente_tipoutente {
-  admin     @map("admin")
-  dottore   @map("dottore")
-  paziente  @map("paziente")
 }
