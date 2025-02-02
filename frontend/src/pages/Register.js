@@ -18,6 +18,7 @@ export const Register = () => {
   });
   const [allergies, setAllergies] = useState([]);
   const [selectedAllergies, setSelectedAllergies] = useState([]);
+  const [allergyTypes, setAllergyTypes] = useState([]); // Track allergy input types (existing/new)
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const navigate = useNavigate();
@@ -82,16 +83,29 @@ export const Register = () => {
   };
 
   const handleAllergyAdd = () => {
-    setSelectedAllergies([...selectedAllergies, { nome: '' }]);
+    setSelectedAllergies([...selectedAllergies, { nome: '', isNew: false }]);
+    setAllergyTypes([...allergyTypes, 'existing']);
   };
 
   const handleAllergyRemove = (index) => {
     setSelectedAllergies(selectedAllergies.filter((_, i) => i !== index));
+    setAllergyTypes(allergyTypes.filter((_, i) => i !== index));
   };
 
   const handleAllergyChange = (index, nome) => {
     const updatedAllergies = [...selectedAllergies];
-    updatedAllergies[index] = { nome };
+    updatedAllergies[index] = { nome, isNew: allergyTypes[index] === 'new' };
+    setSelectedAllergies(updatedAllergies);
+  };
+
+  const handleAllergyTypeChange = (index, type) => {
+    const newTypes = [...allergyTypes];
+    newTypes[index] = type;
+    setAllergyTypes(newTypes);
+    
+    // Reset the allergy value when switching types
+    const updatedAllergies = [...selectedAllergies];
+    updatedAllergies[index] = { nome: '', isNew: type === 'new' };
     setSelectedAllergies(updatedAllergies);
   };
 
@@ -137,7 +151,6 @@ export const Register = () => {
             />
           </div>
 
-          {/* Rest of the form fields remain the same */}
           <div>
             <label className="block text-sm font-medium text-gray-700">Surname</label>
             <input
@@ -226,17 +239,54 @@ export const Register = () => {
                       Remove
                     </button>
                   </div>
-                  <select
-                    value={allergy.nome}
-                    onChange={(e) => handleAllergyChange(index, e.target.value)}
-                    className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    required
-                  >
-                    <option value="">Select allergy</option>
-                    {allergies.map(a => (
-                      <option key={a.nome} value={a.nome}>{a.nome}</option>
-                    ))}
-                  </select>
+                  <div className="space-y-3">
+                    <div className="flex space-x-4">
+                      <button
+                        type="button"
+                        onClick={() => handleAllergyTypeChange(index, 'existing')}
+                        className={`px-3 py-1 rounded-md text-sm ${
+                          allergyTypes[index] === 'existing'
+                            ? 'bg-blue-100 text-blue-700'
+                            : 'bg-gray-100 text-gray-700'
+                        }`}
+                      >
+                        Select Existing
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleAllergyTypeChange(index, 'new')}
+                        className={`px-3 py-1 rounded-md text-sm ${
+                          allergyTypes[index] === 'new'
+                            ? 'bg-blue-100 text-blue-700'
+                            : 'bg-gray-100 text-gray-700'
+                        }`}
+                      >
+                        Add New
+                      </button>
+                    </div>
+                    {allergyTypes[index] === 'existing' ? (
+                      <select
+                        value={allergy.nome}
+                        onChange={(e) => handleAllergyChange(index, e.target.value)}
+                        className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        required
+                      >
+                        <option value="">Select allergy</option>
+                        {allergies.map(a => (
+                          <option key={a.nome} value={a.nome}>{a.nome}</option>
+                        ))}
+                      </select>
+                    ) : (
+                      <input
+                        type="text"
+                        value={allergy.nome}
+                        onChange={(e) => handleAllergyChange(index, e.target.value)}
+                        placeholder="Enter new allergy"
+                        className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        required
+                      />
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
