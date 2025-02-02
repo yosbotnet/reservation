@@ -33,7 +33,7 @@ export const createUserValidation = [
   body('specializzazioni')
     .if(body('tipoutente').equals('dottore'))
     .isArray()
-    .withMessage('Specializations must be provided for doctors'),
+        .withMessage('Specializations must be an array if provided for doctors'),
   validate
 ];
 
