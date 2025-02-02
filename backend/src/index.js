@@ -3,6 +3,7 @@ import cors from 'cors';
 import morgan from 'morgan';
 import { config } from 'dotenv';
 import { PrismaClient } from '@prisma/client';
+import compression from 'compression';  // Move import to top
 
 // Routes
 import authRoutes from './routes/auth.js';
@@ -14,16 +15,33 @@ import adminRoutes from './routes/admin.js';
 import { authenticateToken } from './middleware/auth.js';
 import { errorHandler } from './middleware/error.js';
 
+// Singleton pattern for Prisma
+const prisma = global.prisma || new PrismaClient({
+  log: process.env.NODE_ENV === 'development' ? ['query', 'error'] : ['error'],
+});
+if (process.env.NODE_ENV !== 'production') global.prisma = prisma;
+
 // Initialize
 config();
+let server = null;
 const app = express();
-const prisma = new PrismaClient();
 const PORT = process.env.PORT || 3000;
+app.set('workers', 1);
 
-// Middleware
-app.use(cors());
-app.use(morgan('dev'));
-app.use(express.json());
+// Middleware (in correct order)
+app.use(cors({
+  origin: 'https://clinic.ybaro.it',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+app.use(morgan('dev', {
+  skip: (req, res) => res.statusCode < 400,
+  stream: process.stderr
+}));
+
+app.use(express.json({ limit: '1mb' }));
+app.use(compression());  // Only use compression once
 
 // Routes
 app.use('/auth', authRoutes);
@@ -32,29 +50,23 @@ app.use('/api/doctor', authenticateToken, doctorRoutes);
 app.use('/api/admin', authenticateToken, adminRoutes);
 
 // Error handling
-app.use(errorHandler);
+const gracefulShutdown = () => {
+  console.log('SIGTERM signal received: closing HTTP server');
+  server.close(async () => {
+    console.log('HTTP server closed');
+    await prisma.$disconnect();
+    process.exit(0);
+  });
+};
 
-// Health check
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
-});
-
-// For Vercel, export the app
-export default app;
-export { prisma };
-
-// Start server if not in Vercel environment
 if (process.env.NODE_ENV !== 'production') {
-  const server = app.listen(PORT, () => {
+  server = app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
   });
 
-  // Graceful shutdown
-  process.on('SIGTERM', () => {
-    console.log('SIGTERM signal received: closing HTTP server');
-    server.close(() => {
-      console.log('HTTP server closed');
-      prisma.$disconnect();
-    });
-  });
+  process.on('SIGTERM', gracefulShutdown);
+  process.on('SIGINT', gracefulShutdown);
 }
+
+export default app;
+export { prisma };
