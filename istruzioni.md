@@ -20,15 +20,15 @@ Prima di avviare l'applicazione, assicurarsi di avere installato:
      ```
      # Backend (.env)
      DATABASE_URL="postgresql://prisma:prism@localhost:6543/postgres?pgbouncer=true"
-     PORT=4000
+     PORT=8888
      NODE_ENV=development
      JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
      JWT_EXPIRES_IN=24h
-     CORS_ORIGIN=http://localhost:3000
+     CORS_ORIGIN=http://localhost:8787
      BCRYPT_SALT_ROUNDS=10
 
      # Frontend (.env)
-     REACT_APP_API_URL="http://localhost:4000"
+     REACT_APP_API_URL="http://localhost:8888"
      ```
 
 2. **Struttura delle Cartelle**
@@ -49,7 +49,7 @@ Prima di avviare l'applicazione, assicurarsi di avere installato:
 1. Fare doppio click su `start-built.bat`
    - oppure aprire il terminale ed eseguire `.\start-built.bat`
 2. Attendere l'avvio completo del sistema
-3. Il browser si aprirà automaticamente su http://localhost:3000
+3. Il browser si aprirà automaticamente su http://localhost:8787
 
 ### Per Linux/macOS:
 1. Aprire il terminale nella cartella del progetto
@@ -62,14 +62,14 @@ Prima di avviare l'applicazione, assicurarsi di avere installato:
    ./start-built.sh
    ```
 4. Attendere l'avvio completo del sistema
-5. Aprire il browser su http://localhost:3000
+5. Aprire il browser su http://localhost:8787
 
 ## Verifica del Funzionamento
 
-- Frontend disponibile su: http://localhost:3000
-- Backend API disponibile su: http://localhost:4000
+- Frontend disponibile su: http://localhost:8787
+- Backend API disponibile su: http://localhost:8888
 - Per verificare che tutto funzioni:
-  1. Aprire il browser e navigare su http://localhost:3000
+  1. Aprire il browser e navigare su http://localhost:8787
   2. Dovrebbe apparire la pagina di login del sistema
 
 ## Risoluzione Problemi
@@ -85,7 +85,7 @@ Prima di avviare l'applicazione, assicurarsi di avere installato:
    - Verificare che il database esista
 
 3. **"Porta già in uso"**
-   - Verificare che le porte 3000 e 4000 non siano già utilizzate
+   - Verificare che le porte 8787 e 8888 non siano già utilizzate
    - Terminare eventuali processi che usano queste porte
 
 ### Per Assistenza:
@@ -104,7 +104,7 @@ Prima di avviare l'applicazione, assicurarsi di avere installato:
 
 ## Note Aggiuntive
 
-- L'applicazione utilizza le porte 3000 (frontend) e 4000 (backend)
+- L'applicazione utilizza le porte 8787 (frontend) e 8888 (backend)
 - Assicurarsi che queste porte siano disponibili
 - Per motivi di sicurezza, modificare sempre le credenziali di default
 - Mantenere aggiornato il sistema operativo e Node.js

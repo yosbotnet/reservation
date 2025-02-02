@@ -24,11 +24,11 @@ timeout /t 3 /nobreak >nul
 
 REM Avvia il frontend
 echo 🚀 Avvio del frontend...
-start /b cmd /c "cd frontend\build && npx serve -s . -l 3000"
+start /b cmd /c "cd frontend\build && npx serve -s . -l 8787"
 
 echo ✅ Sistema avviato!
-echo 📱 Frontend: http://localhost:3000
-echo 🔌 Backend: http://localhost:4000
+echo 📱 Frontend: http://localhost:8787
+echo 🔌 Backend: http://localhost:8888
 echo.
 echo Per terminare, chiudere questa finestra.
 echo.

@@ -90,11 +90,11 @@ pm2 start backend/build/index.js --name "surgical-reservation-backend"
 
 # Serve frontend using serve
 npm install -g serve
-pm2 start serve --name "surgical-reservation-frontend" -- -s frontend/build -l 3000
+pm2 start serve --name "surgical-reservation-frontend" -- -s frontend/build -l 8787
 
 echo "✅ Deployment complete!"
-echo "Backend API is running on port 4000"
-echo "Frontend is running on port 3000"
+echo "Backend API is running on port 8888"
+echo "Frontend is running on port 8787"
 echo "Use 'pm2 status' to check running services"
 echo "Use 'pm2 logs' to view logs"
 echo "Use 'pm2 stop all' to stop all services"

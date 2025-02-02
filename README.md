@@ -30,7 +30,7 @@ Modificare `backend/.env` con le credenziali PostgreSQL e altre configurazioni:
 DATABASE_URL="postgresql://username:password@localhost:5432/database_name"
 JWT_SECRET="your-secret-key"
 BCRYPT_SALT_ROUNDS="10"
-PORT=4000
+PORT=8888
 ```
 
 Frontend (.env):
@@ -39,7 +39,7 @@ cp frontend/.env.example frontend/.env
 ```
 Modificare `frontend/.env`:
 ```
-REACT_APP_API_URL="http://your-server:4000"
+REACT_APP_API_URL="http://your-server:8888"
 ```
 
 ## Configurazione del Database
@@ -91,8 +91,8 @@ Il sistema utilizza PM2 per la gestione dei processi. Comandi comuni:
 ## Accesso all'Applicazione
 
 Dopo la distribuzione:
-- Frontend: `http://your-server:3000`
-- Backend API: `http://your-server:4000`
+- Frontend: `http://your-server:8787`
+- Backend API: `http://your-server:8888`
 
 ## Funzionalità
 
@@ -126,7 +126,7 @@ Dopo la distribuzione:
 1. Se i servizi non si avviano:
    - Controllare i log: `pm2 logs`
    - Verificare le variabili d'ambiente
-   - Assicurarsi che le porte 3000 e 4000 siano disponibili
+   - Assicurarsi che le porte 8787 e 8888 siano disponibili
 
 2. Problemi di connessione al database:
    - Verificare che PostgreSQL sia in esecuzione: `sudo systemctl status postgresql`

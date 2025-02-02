@@ -30,7 +30,7 @@ app.set('workers', 1);
 
 // Middleware (in correct order)
 app.use(cors({
-  origin: [process.env.CORS_ORIGIN, "http://localhost:3000","https://clinic.ybaro.it"],
+  origin: [process.env.CORS_ORIGIN, "http://localhost:8787","https://clinic.ybaro.it"],
   methods: ['GET', 'POST', 'PUT','PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));

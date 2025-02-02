@@ -23,12 +23,12 @@ sleep 3
 
 # Avvia il frontend
 echo "🚀 Avvio del frontend..."
-npx serve -s frontend/build -l 3000 &
+npx serve -s frontend/build -l 8787 &
 FRONTEND_PID=$!
 
 echo "✅ Sistema avviato!"
-echo "📱 Frontend: http://localhost:3000"
-echo "🔌 Backend: http://localhost:4000"
+echo "📱 Frontend: http://localhost:8787"
+echo "🔌 Backend: http://localhost:8888"
 echo ""
 echo "Per terminare, premere Ctrl+C"
 
