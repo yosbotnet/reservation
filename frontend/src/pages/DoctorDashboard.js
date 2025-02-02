@@ -56,10 +56,10 @@ export const DoctorDashboard = () => {
         })),
         ...(response.surgeries || []).map(surgery => ({
           id: `surgery-${surgery.id_intervento}`,
-          title: `Surgery: ${surgery.paziente.nome} ${surgery.paziente.cognome}`,
+          title: `Surgery: ${surgery.paziente.nome} ${surgery.paziente.cognome} (${surgery.esito})`,
           start: new Date(surgery.dataoranizio),
           end: new Date(surgery.dataorafine),
-          backgroundColor: '#48bb78', // green
+          backgroundColor: getStatusColor(surgery.esito), // color based on status
           extendedProps: {
             type: 'surgery',
             ...surgery
@@ -74,6 +74,21 @@ export const DoctorDashboard = () => {
       setLoading(false);
     }
   }, [user.cf]);
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'programmato':
+        return '#48bb78'; // green
+      case 'in_corso':
+        return '#f6ad55'; // orange
+      case 'completato':
+        return '#4299e1'; // blue
+      case 'annullato':
+        return '#f56565'; // red
+      default:
+        return '#48bb78'; // default green
+    }
+  };
 
   const loadAppointments = useCallback(async () => {
     try {
@@ -231,6 +246,7 @@ export const DoctorDashboard = () => {
           workHours={workHours}
           onWorkHoursUpdate={handleWorkHoursUpdate}
           loading={loading}
+          onScheduleUpdate={loadDoctorSchedule}
         />
       )}
 

@@ -1,49 +1,139 @@
-# Medical Clinic Management System
+# Sistema di Prenotazione Chirurgica
 
-## Vercel Deployment Guide
+Un sistema completo per la gestione delle prenotazioni chirurgiche, degli appuntamenti e delle risorse della struttura medica.
+Premessa: Il sito è già accessibile a clinic.ybaro.it! L'ho messo online siccome il processo di setup può essere pesante.
 
-### Backend Deployment
+## Requisiti di Sistema
 
-1. **Environment Setup**
-   - In your Vercel project settings, configure the following environment variables:
-     ```
-     DATABASE_URL=your_production_database_url
-     JWT_SECRET=your_secure_jwt_secret
-     NODE_ENV=production
-     FRONTEND_URL=your_frontend_url
-     ```
+- Ubuntu Server
+- Node.js 18 o superiore
+- npm
+- PostgreSQL 14 o superiore
+- PM2 (verrà installato automaticamente)
 
-2. **Database Configuration**
-   - Ensure your database is accessible from Vercel's serverless functions
-   - Use connection pooling for better performance
-   - Configure proper SSL if required by your database provider
+## Configurazione dell'Ambiente
 
-3. **Deployment Steps**
-   - Connect your repository to Vercel
-   - Set the root directory to `/backend`
-   - Set the build command to `npm install`
-   - Set the output directory to `src`
-   - Deploy using the Vercel dashboard or CLI
+1. Clonare il repository:
+```bash
+git clone [repository-url]
+cd reservation
+```
 
-4. **Post-Deployment**
-   - Verify the health endpoint is working: `https://your-api.vercel.app/health`
-   - Check CORS is properly configured with your frontend URL
-   - Monitor the Vercel logs for any connection issues
+2. Configurare le variabili d'ambiente:
 
-### Performance Optimizations
+Backend (.env):
+```bash
+cp backend/.env.example backend/.env
+```
+Modificare `backend/.env` con le credenziali PostgreSQL e altre configurazioni:
+```
+DATABASE_URL="postgresql://username:password@localhost:5432/database_name"
+JWT_SECRET="your-secret-key"
+BCRYPT_SALT_ROUNDS="10"
+PORT=4000
+```
 
-The backend is optimized for serverless deployment with:
-- Connection pooling for database
-- Proper CORS configuration
-- Caching headers for static responses
-- Security headers
-- Health check endpoint
-- Request timeout handling
+Frontend (.env):
+```bash
+cp frontend/.env.example frontend/.env
+```
+Modificare `frontend/.env`:
+```
+REACT_APP_API_URL="http://your-server:4000"
+```
 
-### Troubleshooting
+## Configurazione del Database
 
-If you encounter issues:
-1. Check Vercel deployment logs
-2. Verify environment variables are set correctly
-3. Ensure database is accessible from Vercel's network
-4. Monitor the health endpoint for database connectivity
+1. Creare il database PostgreSQL:
+```bash
+sudo -u postgres psql
+CREATE DATABASE your_database_name;
+\q
+```
+
+2. Importare lo schema iniziale e i dati:
+```bash
+psql -U your_username -d your_database_name -f db/clinica.sql
+psql -U your_username -d your_database_name -f db/fakedata.sql
+```
+
+## Installazione e Distribuzione
+
+1. Rendere eseguibile lo script di avvio:
+```bash
+chmod +x start.sh
+```
+
+2. Eseguire lo script di avvio:
+```bash
+./start.sh
+```
+
+Lo script:
+- Verificherà i requisiti di sistema
+- Installerà le dipendenze per frontend e backend
+- Genererà il client Prisma
+- Eseguirà le migrazioni del database
+- Compilerà sia frontend che backend
+- Avvierà i servizi usando PM2
+- Configurerà i servizi per il riavvio al reboot del sistema
+
+## Gestione dei Servizi
+
+Il sistema utilizza PM2 per la gestione dei processi. Comandi comuni:
+
+- Controllare lo stato dei servizi: `pm2 status`
+- Visualizzare i log: `pm2 logs`
+- Fermare tutti i servizi: `pm2 stop all`
+- Riavviare tutti i servizi: `pm2 restart all`
+- Monitorare le risorse: `pm2 monit`
+
+## Accesso all'Applicazione
+
+Dopo la distribuzione:
+- Frontend: `http://your-server:3000`
+- Backend API: `http://your-server:4000`
+
+## Funzionalità
+
+- Gestione Utenti (ruoli Admin, Medico, Paziente)
+- Programmazione Appuntamenti
+- Gestione Interventi Chirurgici
+- Gestione Sale Operatorie
+- Monitoraggio Attrezzature
+- Protocolli di Cura Post-operatoria
+- Aggiornamenti in Tempo Reale
+- Statistiche Complete
+
+## Architettura
+
+- Frontend: React con Tailwind CSS
+- Backend: Node.js con Express
+- Database: PostgreSQL con Prisma ORM
+- Autenticazione: basata su JWT
+- Gestione Processi: PM2
+
+## Note sulla Sicurezza
+
+1. Modificare sempre le credenziali predefinite
+2. Utilizzare JWT secret robusti
+3. Mantenere i file di ambiente al sicuro
+4. Aggiornare regolarmente le dipendenze
+5. Monitorare i log PM2 per attività sospette
+
+## Risoluzione Problemi
+
+1. Se i servizi non si avviano:
+   - Controllare i log: `pm2 logs`
+   - Verificare le variabili d'ambiente
+   - Assicurarsi che le porte 3000 e 4000 siano disponibili
+
+2. Problemi di connessione al database:
+   - Verificare che PostgreSQL sia in esecuzione: `sudo systemctl status postgresql`
+   - Controllare DATABASE_URL in backend/.env
+   - Assicurarsi che l'utente del database abbia i permessi corretti
+
+3. Frontend non si connette al backend:
+   - Verificare REACT_APP_API_URL in frontend/.env
+   - Controllare se il backend è in esecuzione: `pm2 status`
+   - Verificare che le impostazioni del firewall permettano le connessioni

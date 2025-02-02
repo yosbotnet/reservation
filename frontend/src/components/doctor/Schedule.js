@@ -4,21 +4,29 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import { WorkHours } from './WorkHours';
+import { SurgeryModal } from './SurgeryModal';
 import { dbScheduleToBusinessHours } from '../../utils/timeutils';
+import { api } from '../../api/api';
+import { useAuth } from '../../contexts/AuthContext';
 
 export const Schedule = ({ 
   schedule, 
   onEventClick, 
   workHours,
   onWorkHoursUpdate,
-  loading 
+  loading,
+  onScheduleUpdate 
 }) => {
+  const { user } = useAuth();
   const [showWorkHours, setShowWorkHours] = useState(false);
+  const [selectedSurgery, setSelectedSurgery] = useState(null);
 
   const handleEventClick = (info) => {
     const { extendedProps } = info.event;
     if (extendedProps.type === 'visit') {
       onEventClick(extendedProps);
+    } else if (extendedProps.type === 'surgery') {
+      setSelectedSurgery(extendedProps);
     }
   };
 
@@ -69,6 +77,24 @@ export const Schedule = ({
           setShowWorkHours(false);
         }}
       />
+
+      {selectedSurgery && (
+        <SurgeryModal
+          surgery={selectedSurgery}
+          onClose={() => setSelectedSurgery(null)}
+          onUpdate={async (surgeryId, updateData) => {
+            try {
+              await api.doctor.updateSurgery(surgeryId, updateData);
+              setSelectedSurgery(null);
+              // Call the parent's schedule update function
+              onScheduleUpdate();
+            } catch (error) {
+              console.error('Failed to update surgery:', error);
+              alert('Failed to update surgery. Please try again.');
+            }
+          }}
+        />
+      )}
     </div>
   );
 };

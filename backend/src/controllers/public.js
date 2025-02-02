@@ -280,7 +280,7 @@ export const getPatientSurgeries = async (req, res, next) => {
       postOperativeProtocols: {
         activitiesToAvoid: surgery.cura_postoperativa.flatMap(cp => cp.daevitare.map(da => ({
           id: da.id_attivita,
-          name: da.attivita.nomeallergia, // Assuming 'nomeallergia' is the activity name
+          name: da.attivita.nome,
           reason: da.perche
         }))),
         medications: surgery.cura_postoperativa.flatMap(cp => cp.daprendere.map(dp => ({

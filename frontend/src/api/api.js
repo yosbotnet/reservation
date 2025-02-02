@@ -234,6 +234,12 @@ export const api = {
     },
     getOperatingRooms: async () => {
       return api.protected.request('/api/doctor/operating-rooms');
+    },
+    updateSurgery: async (surgeryId, updateData) => {
+      return api.protected.request(`/api/doctor/surgeries/${surgeryId}`, {
+        method: 'PUT',
+        body: JSON.stringify(updateData),
+      });
     }
   },
   protected: {
