@@ -108,9 +108,58 @@ Attività & Azione fisica da evitare durante la convalescenza \\
 
 Questo schema verrà raffinato nel capitolo successivo, aggiungendo attributi e vincoli specifici per ogni entità e relazione.
 
-\chapter{Progettazione concettuale} 
+\chapter{Progettazione concettuale}
+
 \section{Schema scheletro}
+Lo sviluppo dello schema Entity-Relationship procederà per fasi successive, partendo da uno schema base che verrà progressivamente raffinato. La complessità del sistema richiede particolare attenzione nella modellazione di:
+
+\begin{itemize}
+\item La struttura gerarchica degli utenti del sistema
+\item Le relazioni temporali tra visite e interventi
+\item La gestione delle risorse (sale operatorie e attrezzature)
+\item Il tracciamento delle cure post-operatorie
+\end{itemize}
+
+Nel primo schema scheletro si evidenziano le entità fondamentali e le loro relazioni principali, rimandando a successive fasi di raffinamento l'aggiunta di dettagli specifici e vincoli.
+
+\begin{figure}[H]
+\caption{Schema scheletro iniziale}
+\centering
+% TODO: Inserire schema scheletro base
+\end{figure}
+
 \section{Raffinamenti proposti}
+Analizziamo ora le principali questioni progettuali da affrontare:
+
+\subsection{Gestione degli utenti}
+La prima questione riguarda la modellazione degli utenti del sistema. È necessaria una gerarchia che distingua tra pazienti e dottori, mantenendo però alcuni dati in comune (credenziali di accesso, dati anagrafici). Si propone quindi una generalizzazione dell'entità UTENTE.
+
+\textbf{Problema}: Come gestire i diversi tipi di utenti mantenendo i dati comuni?
+
+\textbf{Soluzione}: Si adotta una gerarchia di generalizzazione totale ed esclusiva (t,e) con l'entità UTENTE come genitore e le entità PAZIENTE e DOTTORE come figlie. Questo permette di:
+\begin{itemize}
+\item Centralizzare la gestione delle credenziali e dei dati anagrafici
+\item Differenziare gli attributi specifici per tipo di utente
+\item Garantire che ogni utente sia esattamente di un tipo
+\end{itemize}
+
+\textbf{Problema}: Come modellare le competenze dei dottori?
+
+\textbf{Soluzione}: Si introduce l'entità SPECIALIZZAZIONE collegata a DOTTORE attraverso una relazione molti-a-molti, permettendo ad ogni dottore di avere più specializzazioni e ad ogni specializzazione di essere posseduta da più dottori.
+
+\subsection{Gestione delle visite}
+Il sistema deve tracciare le visite mediche, che costituiscono il punto di partenza per eventuali interventi.
+
+\textbf{Problema}: Come collegare visite e interventi mantenendo la storia?
+
+\textbf{Soluzione}: L'entità VISITA viene modellata con:
+\begin{itemize}
+\item Collegamenti diretti a paziente e dottore
+\item Data e ora della visita
+\item Possibilità di programmare un intervento
+\end{itemize}
+
+[Continua con ulteriori raffinamenti...]
 \section{Schema concettuale finale}
 
 \chapter{Progettazione logica}
