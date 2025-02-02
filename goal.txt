@@ -15,7 +15,7 @@ Doctors' Area: FATTO
 * View scheduled surgeries X
 * Access assigned patient information X
 Administrative Area:
-* User registry management x edit non ha senso. manca aggiunta utente
+* User registry management x edit non ha senso. manca aggiunta dottore
 * Operating room and equipment management x
 * Management of offered procedures catalog x
 * Equipment inventory management X
@@ -23,4 +23,4 @@ Information provided by the system: FATTO
 * Operating room occupancy rate in the last 3 months X
 * Statistics comparing actual vs. estimated procedure durations X
 * Number of operations performed by type in the last year X
-* A list of doctors with the highest number of successful operations ?
+* A list of doctors with the highest number of successful operations 
