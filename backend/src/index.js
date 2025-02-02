@@ -17,7 +17,7 @@ import { errorHandler } from './middleware/error.js';
 
 // Singleton pattern for Prisma
 const prisma = global.prisma || new PrismaClient({
-  log: process.env.NODE_ENV === 'development' ? ['query', 'error'] : ['error'],
+  log:  ['error'],
 });
 if (process.env.NODE_ENV !== 'production') global.prisma = prisma;
 
@@ -25,12 +25,12 @@ if (process.env.NODE_ENV !== 'production') global.prisma = prisma;
 config();
 let server = null;
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8888;
 app.set('workers', 1);
 
 // Middleware (in correct order)
 app.use(cors({
-  origin: process.env.CORS_ORIGIN,
+  origin: [process.env.CORS_ORIGIN, "http://localhost:3000","https://clinic.ybaro.it"],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
