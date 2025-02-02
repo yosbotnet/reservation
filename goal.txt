@@ -15,7 +15,7 @@ Doctors' Area: FATTO
 * View scheduled surgeries X
 * Access assigned patient information X
 Administrative Area:
-* User registry management x edit non ha senso. manca aggiunta dottore
+* User registry management X
 * Operating room and equipment management x
 * Management of offered procedures catalog x
 * Equipment inventory management X

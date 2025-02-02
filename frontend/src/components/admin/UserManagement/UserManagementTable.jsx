@@ -15,11 +15,10 @@ const INITIAL_DOCTOR_FORM = {
 };
 
 export const UserManagementTable = () => {
-  const [users, setUsers] = useState([]);
+  const [allUsers, setAllUsers] = useState([]); // Store original list
+  const [filteredUsers, setFilteredUsers] = useState([]); // Store filtered view
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editUser, setEditUser] = useState(null);
   const [showDoctorForm, setShowDoctorForm] = useState(false);
   const [doctorForm, setDoctorForm] = useState(INITIAL_DOCTOR_FORM);
   const [specializations, setSpecializations] = useState([]);
@@ -31,7 +30,8 @@ export const UserManagementTable = () => {
           api.admin.getUsers(),
           api.admin.getSpecializations()
         ]);
-        setUsers(userData);
+        setAllUsers(userData);
+        setFilteredUsers(userData);
         setSpecializations(specializationsData);
       } catch (err) {
         setError(err.message);
@@ -46,7 +46,8 @@ export const UserManagementTable = () => {
     if (window.confirm('Are you sure you want to delete this user?')) {
       try {
         await api.admin.deleteUser(cf);
-        setUsers(users.filter(user => user.cf !== cf));
+        setAllUsers(prev => prev.filter(user => user.cf !== cf));
+        setFilteredUsers(prev => prev.filter(user => user.cf !== cf));
       } catch (err) {
         setError(err.message);
       }
@@ -61,7 +62,8 @@ export const UserManagementTable = () => {
         tipoutente: 'dottore',
         datanascita: new Date(doctorForm.datanascita).toISOString()
       });
-      setUsers([...users, newDoctor]);
+      setAllUsers(prev => [...prev, newDoctor]);
+      setFilteredUsers(prev => [...prev, newDoctor]);
       setShowDoctorForm(false);
       setDoctorForm(INITIAL_DOCTOR_FORM);
     } catch (err) {
@@ -93,9 +95,9 @@ export const UserManagementTable = () => {
           onChange={(e) => {
             const role = e.target.value;
             if (role === 'all') {
-              setUsers(users);
+              setFilteredUsers(allUsers);
             } else {
-              setUsers(users.filter(user => user.tipoutente === role));
+              setFilteredUsers(allUsers.filter(user => user.tipoutente === role));
             }
           }}
           className="border rounded px-2 py-1"
@@ -117,7 +119,7 @@ export const UserManagementTable = () => {
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
-          {users.map((user) => (
+          {filteredUsers.map((user) => (
             <tr key={user.cf}>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{user.username}</td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 capitalize">{user.tipoutente}</td>
@@ -128,15 +130,6 @@ export const UserManagementTable = () => {
                 )}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                <button
-                  onClick={() => {
-                    setEditUser(user);
-                    setIsModalOpen(true);
-                  }}
-                  className="text-indigo-600 hover:text-indigo-900"
-                >
-                  Edit
-                </button>
                 <button
                   onClick={() => handleDelete(user.cf)}
                   className="text-red-600 hover:text-red-900"

@@ -81,18 +81,23 @@ export const createDoctor = async (req, res, next) => {
 
       // Return complete doctor data
       return prisma.utente.findUnique({
-        where: { cf: user.cf },
+        where: {
+          cf: "LTFMLV39E01E189B"
+        },
         include: {
-          dottore: true,
-          specializzato_in: {
+          dottore: {
             include: {
-              specializzazione: true
+              specializzato_in: {
+                include: {
+                  specializzazione: true
+                }
+              }
             }
-          }
+          },
+          paziente: true
         }
       });
     });
-
     res.status(201).json(result);
   } catch (error) {
     next(error);
@@ -130,17 +135,163 @@ export const deleteUser = async (req, res, next) => {
   const { cf } = req.params;
 
   try {
-    await prisma.utente.delete({
-      where: { cf }
-    });
-
+    await deleteUserBackEnd(cf);
     res.json({
       message: 'User deleted successfully'
     });
   } catch (error) {
-    next(error);
+    if (error.message === 'Admin users cannot be deleted') {
+      res.status(403).json({ message: error.message });
+    } else {
+      next(error);
+    }
   }
 };
+
+async function deleteUserBackEnd(cf) {
+  return await prisma.$transaction(async (prisma) => {
+    // First check if user exists and get their type
+    const user = await prisma.utente.findUnique({
+      where: { cf },
+      select: {
+        tipoutente: true
+      }
+    });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    // Prevent admin deletion
+    if (user.tipoutente === 'admin') {
+      throw new Error('Admin users cannot be deleted');
+    }
+
+    if (user.tipoutente === 'dottore') {
+      // Delete all doctor's work hours
+      await prisma.orariodilavoro.deleteMany({
+        where: { cf }
+      });
+
+      // Delete specializations
+      await prisma.specializzato_in.deleteMany({
+        where: { cf }
+      });
+
+      // Delete visits
+      await prisma.visita.deleteMany({
+        where: { cf_dottore: cf }
+      });
+
+      // Get all interventions by this doctor
+      const interventions = await prisma.intervento.findMany({
+        where: { cf_dottore: cf },
+        select: { id_intervento: true }
+      });
+
+      // Handle postoperative protocols if they exist
+      if (interventions.length > 0) {
+        const protocols = await prisma.cura_postoperativa.findMany({
+          where: {
+            id_intervento: {
+              in: interventions.map(i => i.id_intervento)
+            }
+          },
+          select: { id_cura: true }
+        });
+
+        if (protocols.length > 0) {
+          const protocolIds = protocols.map(p => p.id_cura);
+          
+          // Delete all related records
+          await prisma.daprendere.deleteMany({
+            where: { id_cura: { in: protocolIds } }
+          });
+          
+          await prisma.daevitare.deleteMany({
+            where: { id_cura: { in: protocolIds } }
+          });
+          
+          await prisma.cura_postoperativa.deleteMany({
+            where: { id_cura: { in: protocolIds } }
+          });
+        }
+      }
+
+      // Delete interventions
+      await prisma.intervento.deleteMany({
+        where: { cf_dottore: cf }
+      });
+
+      // Delete doctor record
+      await prisma.dottore.delete({
+        where: { cf }
+      });
+    }
+
+    if (user.tipoutente === 'paziente') {
+      // Delete allergies
+      await prisma.allergia.deleteMany({
+        where: { cf }
+      });
+
+      // Delete visits
+      await prisma.visita.deleteMany({
+        where: { cf_paziente: cf }
+      });
+
+      // Get all interventions for this patient
+      const interventions = await prisma.intervento.findMany({
+        where: { cf_paziente: cf },
+        select: { id_intervento: true }
+      });
+
+      // Handle postoperative protocols if they exist
+      if (interventions.length > 0) {
+        const protocols = await prisma.cura_postoperativa.findMany({
+          where: {
+            id_intervento: {
+              in: interventions.map(i => i.id_intervento)
+            }
+          },
+          select: { id_cura: true }
+        });
+
+        if (protocols.length > 0) {
+          const protocolIds = protocols.map(p => p.id_cura);
+          
+          // Delete all related records
+          await prisma.daprendere.deleteMany({
+            where: { id_cura: { in: protocolIds } }
+          });
+          
+          await prisma.daevitare.deleteMany({
+            where: { id_cura: { in: protocolIds } }
+          });
+          
+          await prisma.cura_postoperativa.deleteMany({
+            where: { id_cura: { in: protocolIds } }
+          });
+        }
+      }
+
+      // Delete interventions
+      await prisma.intervento.deleteMany({
+        where: { cf_paziente: cf }
+      });
+
+      // Delete patient record
+      await prisma.paziente.delete({
+        where: { cf }
+      });
+    }
+
+    // Finally delete the user
+    return await prisma.utente.delete({
+      where: { cf }
+    });
+  });
+}
 
 // Operating Room Management
 export const getRooms = async (req, res, next) => {
