@@ -55,9 +55,24 @@ npm install
 echo "🔄 Generating Prisma client..."
 npx prisma generate --schema=src/prisma/schema.prisma
 
-# Run database migrations
-echo "🗃️ Running database migrations..."
-npx prisma migrate deploy --schema=src/prisma/schema.prisma
+# Check database migration status and prompt for confirmation
+echo "🗃️ Checking database migration status..."
+npx prisma migrate status --schema=src/prisma/schema.prisma
+
+# Show pending migrations
+echo "📋 Pending migrations:"
+npx prisma migrate diff --from-schema-datamodel src/prisma/schema.prisma --to-schema-datasource src/prisma/schema.prisma
+
+# Prompt for migration confirmation
+read -p "⚠️ Do you want to proceed with database migrations? This could potentially affect your data. (y/N) " -n 1 -r
+echo
+if [[ ! $REPLY =~ ^[Yy]$ ]]
+then
+    echo "🛑 Migration skipped. Please review and apply migrations manually if needed."
+else
+    echo "🗃️ Running database migrations..."
+    npx prisma migrate deploy --schema=src/prisma/schema.prisma
+fi
 
 # Build backend
 echo "🏗️ Building backend..."
@@ -85,8 +100,15 @@ npm run build
 echo "🚀 Starting services..."
 cd ..
 
-# Start backend
-pm2 start backend/build/index.js --name "surgical-reservation-backend"
+# Start backend (check if dist or build directory exists)
+if [ -f backend/dist/index.js ]; then
+    pm2 start backend/dist/index.js --interpreter node --name "surgical-reservation-backend"
+elif [ -f backend/build/index.js ]; then
+    pm2 start backend/build/index.js --interpreter node --name "surgical-reservation-backend"
+else
+    echo "❌ Cannot find backend build output. Please check if the build generated the correct files."
+    exit 1
+fi
 
 # Serve frontend using serve
 npm install -g serve
