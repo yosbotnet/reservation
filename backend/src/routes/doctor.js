@@ -5,6 +5,7 @@ import {
   updateVisitOutcome,
   scheduleSurgery,
   getSurgeryTypes,
+  updateSurgery,
   getOperatingRooms
 } from '../controllers/doctor.js';
 import {
@@ -52,5 +53,8 @@ router.get('/surgery-types', getSurgeryTypes);
 
 // Get operating rooms
 router.get('/operating-rooms', getOperatingRooms);
+
+// Update surgery outcome and time
+router.put('/surgeries/:surgeryId', updateSurgery);
 
 export default router;

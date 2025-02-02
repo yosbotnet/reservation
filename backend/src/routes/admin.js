@@ -1,7 +1,8 @@
 import express from 'express';
 import {
   getUsers,
-  createUser,
+  getSpecializations,
+  createDoctor,
   updateUser,
   deleteUser,
   getRooms,
@@ -35,7 +36,8 @@ router.use(requireRole(['admin']));
 
 // User Management
 router.get('/users', getUsers);
-router.post('/users', createUserValidation, createUser);
+router.get('/specializations', getSpecializations);
+router.post('/doctors', createDoctor);
 router.patch('/users/:cf', updateUserValidation, updateUser);
 router.delete('/users/:cf', deleteUser);
 

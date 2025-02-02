@@ -21,8 +21,22 @@ export const getUsers = async (req, res, next) => {
   }
 };
 
-export const createUser = async (req, res, next) => {
-  const { username, password, tipoutente, ...userData } = req.body;
+export const getSpecializations = async (req, res, next) => {
+  try {
+    const specializations = await prisma.specializzazione.findMany({
+      select: {
+        id_specializzazione: true,
+        nome: true
+      }
+    });
+    res.json(specializations);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const createDoctor = async (req, res, next) => {
+  const { username, password, specializzazioni, ...doctorData } = req.body;
 
   try {
     const hashedPassword = await bcrypt.hash(
@@ -34,53 +48,52 @@ export const createUser = async (req, res, next) => {
       // Create base user account
       const user = await prisma.utente.create({
         data: {
-          cf: userData.cf,
+          cf: doctorData.cf,
           username,
           password: hashedPassword,
-          nome: userData.nome,
-          cognome: userData.cognome,
-          datanascita: new Date(userData.datanascita),
-          telefono: userData.telefono,
-          tipoutente
+          nome: doctorData.nome,
+          cognome: doctorData.cognome,
+          datanascita: new Date(doctorData.datanascita),
+          telefono: doctorData.telefono,
+          tipoutente: 'dottore'
         }
       });
 
-      // Create role-specific record
-      if (tipoutente === 'dottore') {
-        await prisma.dottore.create({
-          data: {
-            cf: user.cf,
-            numeroregistrazione: userData.numeroregistrazione,
-            dataassunzione: new Date(),
-            iban: userData.iban
-          }
-        });
-
-        // Handle specializations if provided
-        if (userData.specializzazioni?.length) {
-          await prisma.specializzato_in.createMany({
-            data: userData.specializzazioni.map(specId => ({
-              cf: user.cf,
-              id_specializzazione: specId
-            }))
-          });
+      // Create doctor record
+      await prisma.dottore.create({
+        data: {
+          cf: user.cf,
+          numeroregistrazione: doctorData.numeroregistrazione,
+          dataassunzione: new Date(),
+          iban: doctorData.iban
         }
-      } else if (tipoutente === 'paziente') {
-        await prisma.paziente.create({
-          data: {
+      });
+
+      // Add specializations
+      if (specializzazioni?.length) {
+        await prisma.specializzato_in.createMany({
+          data: specializzazioni.map(specId => ({
             cf: user.cf,
-            grupposanguigno: userData.grupposanguigno
-          }
+            id_specializzazione: specId
+          }))
         });
       }
 
-      return user;
+      // Return complete doctor data
+      return prisma.utente.findUnique({
+        where: { cf: user.cf },
+        include: {
+          dottore: true,
+          specializzato_in: {
+            include: {
+              specializzazione: true
+            }
+          }
+        }
+      });
     });
 
-    res.status(201).json({
-      message: 'User created successfully',
-      userId: result.cf
-    });
+    res.status(201).json(result);
   } catch (error) {
     next(error);
   }

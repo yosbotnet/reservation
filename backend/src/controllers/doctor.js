@@ -254,6 +254,68 @@ export const getSurgeryTypes = async (req, res, next) => {
   }
 };
 
+export const updateSurgery = async (req, res, next) => {
+  const { surgeryId } = req.params;
+  const { esito, dataoranizio, dataorafine } = req.body;
+
+  try {
+    // Check if the new time slot conflicts with other surgeries in the same room
+    const currentSurgery = await prisma.intervento.findUnique({
+      where: { id_intervento: parseInt(surgeryId) },
+      select: { id_sala: true }
+    });
+
+    if (dataoranizio && dataorafine) {
+      const conflictingSurgery = await prisma.intervento.findFirst({
+        where: {
+          id_sala: currentSurgery.id_sala,
+          id_intervento: { not: parseInt(surgeryId) },
+          OR: [
+            {
+              AND: [
+                { dataoranizio: { lte: new Date(dataoranizio) } },
+                { dataorafine: { gt: new Date(dataoranizio) } }
+              ]
+            },
+            {
+              AND: [
+                { dataoranizio: { lt: new Date(dataorafine) } },
+                { dataorafine: { gte: new Date(dataorafine) } }
+              ]
+            }
+          ]
+        }
+      });
+
+      if (conflictingSurgery) {
+        return res.status(400).json({ error: 'Operating room is not available at this time' });
+      }
+    }
+
+    const surgery = await prisma.intervento.update({
+      where: { id_intervento: parseInt(surgeryId) },
+      data: {
+        ...(esito && { esito }),
+        ...(dataoranizio && { dataoranizio: new Date(dataoranizio) }),
+        ...(dataorafine && { dataorafine: new Date(dataorafine) })
+      },
+      include: {
+        paziente: {
+          include: {
+            utente: true
+          }
+        },
+        tipo_intervento: true,
+        sala_operativa: true
+      }
+    });
+
+    res.json(surgery);
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const getOperatingRooms = async (req, res, next) => {
   try {
     const rooms = await prisma.sala_operativa.findMany({

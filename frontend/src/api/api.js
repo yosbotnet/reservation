@@ -37,11 +37,12 @@ export const api = {
   admin: {
     // User Management
     getUsers: () => api.protected.request('/api/admin/users'),
-    createUser: (userData) => api.protected.request('/api/admin/users', {
+    getSpecializations: () => api.protected.request('/api/admin/specializations'),
+    createDoctor: (doctorData) => api.protected.request('/api/admin/doctors', {
       method: 'POST',
       body: JSON.stringify({
-        ...userData,
-        datanascita: new Date(userData.datanascita).toISOString()
+        ...doctorData,
+        datanascita: new Date(doctorData.datanascita).toISOString()
       })
     }),
     updateUser: (cf, userData) => api.protected.request(`/api/admin/users/${cf}`, {
@@ -234,6 +235,12 @@ export const api = {
     },
     getOperatingRooms: async () => {
       return api.protected.request('/api/doctor/operating-rooms');
+    },
+    updateSurgery: async (surgeryId, updateData) => {
+      return api.protected.request(`/api/doctor/surgeries/${surgeryId}`, {
+        method: 'PUT',
+        body: JSON.stringify(updateData),
+      });
     }
   },
   protected: {

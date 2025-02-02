@@ -10,7 +10,6 @@ export const Register = () => {
     cognome: '',
     cf: '',
     datanascita: '',
-    email: '',
     telefono: '',
     grupposanguigno: '',
     password: '',
@@ -63,7 +62,6 @@ export const Register = () => {
         username: formData.username,
         password: formData.password,
         tipoutente: 'paziente',
-        email: formData.email,
         nome: formData.nome,
         cognome: formData.cognome,
         cf: formData.cf,
@@ -172,18 +170,6 @@ export const Register = () => {
               required
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               value={formData.datanascita}
-              onChange={handleChange}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Email</label>
-            <input
-              type="email"
-              name="email"
-              required
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              value={formData.email}
               onChange={handleChange}
             />
           </div>
